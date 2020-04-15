@@ -1,0 +1,93 @@
+.content {
+  padding-bottom: 0;
+  font-size: 18px;
+  font-family: 'Lato', Helvetica, Arial;
+  padding-top: 0;
+}
+
+.main-header .logo {
+  width: 600px;
+  text-align: left;
+}
+
+.main-header .logo img {
+  width: 60px;
+  height: 30px;
+}
+
+.intro-content {
+  line-height: 1.3em;
+  width: 80%;
+  height: 720px;
+  position: absolute;
+  padding: 80 6% 80 8%;
+}
+
+.intro-content h3 {
+  line-height: 1.3em;
+  text-align: left;
+  margin-top: 0px;
+  margin-bottom: 15px;
+  font-size: 26px;
+  color: #000;
+}
+
+.dataset-selection {
+  margin: 50 0 0 0;
+  width: 100%;
+}
+
+.btn-main {
+  display: inline-block;
+  padding: 30px 0;
+  width: 220px;
+  text-align: center;
+  font-size: 30px;
+  margin-right: 50px;
+  border-radius: 20px;
+  border: 2px solid black;
+  background-color: white;
+  color: black;
+}
+
+.btn-main.btn-main-white {
+  margin-right: 100px;
+  float: right;
+}
+
+.btn-main.btn-main-primary {
+  margin-left: 100px;
+}
+
+.btn-main.btn-main-white:hover {
+  background-color: #222d32;
+  border: 0px;
+  color: white
+}
+
+.btn-main.btn-main-primary:hover {
+  color: white;
+  border: 0px;
+  background-color: #222d32;
+}
+
+.main-header .logo {
+  background-color: #f9f9f9;
+  color: #456990;
+  border-bottom: 0 solid transparent;
+  text-align: left;
+  width: -webkit-fill-available;
+}
+
+.header-browse .logo {
+  width: -webkit-fill-available;
+}
+
+.header-flower .logo {
+  width: -webkit-fill-available;
+  background-color: #f9f9f9;
+}
+
+html {
+  zoom: 80%;
+}

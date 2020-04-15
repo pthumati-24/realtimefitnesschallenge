@@ -1,0 +1,313 @@
+{% load staticfiles %}
+<link rel="stylesheet" href="{% static 'css/airbnbapp.css' %}" />
+<html>
+{% include 'main_page_header.html' %}
+
+<body class="hold-transition skin-custom sidebar-mini">
+  <div class="wrapper">
+    <header class="main-header header-browse">
+      {% include 'main_page_title_bar.html' %}
+    </header>
+    <aside class="main-sidebar main-sidebar-wide" style="background-color: #fff;width: 440px !important; border-right: 1px solid #eee;">
+      <section class="sidebar">
+        <div id="statpane">
+          <div id="statpane-section1">
+            <div style="padding: 10 15;">
+              <b>Select YearRange</b>
+              <div style="float:right;">
+                <i class="fa fa-circle" style="color:#e48268;"></i>&nbsp;Reviews
+                <i class="fa fa-circle" style="color: #6bacd0;"></i>&nbsp;Listings
+              </div>
+            </div>
+            <div id="stat_charts" style="width: 385px; height: 230px;">
+                <div id="reviews_bar_chart"></div>
+                <div id="reviews_slider" style="margin-top: -5px; margin-left: 40px;" class="yearSlider"></div>
+                <div id="listings_slider" style="margin-left: 40px;" class="yearSlider"></div>
+                <div id="listings_bar_chart"></div>
+              </div>
+          </div>
+          <div id="statpane-section2" style="margin-top: 100px;">
+            <div style="padding: 10 15;">
+              <div id="numbers_chart">
+                <b>Statictics: Total</b>&nbsp;<span id="stats_total"></span>
+                <div id="review_stat"></div>
+                <div id="listing_stat"></div>
+              </div>
+            </div>
+          </div>
+          <div id="statpane-section3" style="border-top:1px #eee solid;margin: 15px;">
+              <div style="padding: 10 15;">
+                <b>Selected Range (for flower)</b>
+                <div><span id="review_range"></span>&nbsp;<span id="listing_range"></span></div>
+                <div><span id="review_count"></span>,&nbsp;<span id="listing_count"></span></div>
+              </div>
+              <div style="border-radius: 4px; padding: 15px; background-color: rgb(245, 245, 245); border: 1px solid #e5e5e5;text-align: justify;">
+                <b>Variables</b>
+                <br><span><b>num_listings</b> - Number of listings in each neighborhood/zipcode in a city</span>
+                <br><span><b>num_reviews</b> - Total number of reviews received for all the listings in the neighborhood/zipcode in a city</span>
+              </div>
+              <div style="padding: 0 15;">
+                <br />
+                <b>Include Bungalows</b>
+                <input id="check_box" class="self-cite" type="checkbox" checked="checked" style="float:left; margin:5 10 0 0" name="self-cite" id="self-cite" />
+              </div>
+          </div>
+          <div id="statpane-section4" >
+            <div style="padding: 10 15;">
+              <div ><b>Number of petals&nbsp;</b><span ><input id="num_of_petals" style="width: 60px;" type="number" value="25"/></span></div>
+            </div>
+            <div style="padding: 0 15;">
+              <div ><b>Petal order&nbsp;</b>
+                <div><input id="petal_order" type="text" style="width: 100%;" value="num_reviews+num_listings"/></div>
+              </div>
+            </div>
+            <div style="padding-left: 5%; padding-bottom: 2%; padding-top: 2%;">
+              <center><button id="submit_stats" type="button" class="btn btn-primary"><i id="spinner_id" style="display: none;" class="fas fa-spinner fa-pulse"></i>Update
+                Flower</button></center>
+            </div>
+        </div>
+        </div>
+      </section>
+    </aside>
+    <div class="content-wrapper content-wrapper-narrow" style="min-height: 875px;margin-top:50px;margin-left:480px;background: #fff;">
+      <div id="flower-container" style="height:860px;">
+        <ul class="nav nav-tabs" style="float:right">
+          <li><a class="btn tab-btn active" href="#tab-director" name="Neighbourhood" data-toggle="tab">&nbsp;Neighbourhood</a>
+          </li>
+          <li><a class="btn tab-btn" href="#tab-writer" name="Zipcode" data-toggle="tab">&nbsp;Zipcode</a></li>
+        </ul>
+        <!-- Tab content -->
+        <div class="tab-content" style="background-color: #fff;">
+          
+          <div role="tabpanel" class="tab-pane tab-flower active" id="tab-director">
+            <h4>Neighbourhood</h4>
+            <div align="center">
+              <i id="flower-spinner" class="fas fa-7x fa-spinner fa-pulse" style="display:none;"></i>
+              <svg id="neighbourhood-plot" width=1800 height=1110></svg>
+              
+            </div>
+          </div>
+          <div role="tabpanel" class="tab-pane tab-flower" id="tab-writer">
+            <h4>Zipcode</h4>
+            <div align="center">
+              <svg id="zipcode-plot" width=1800 height=1110></svg>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    <div id="hidden_div" style="display:hidden;"></div>
+  </div>
+</body>
+
+<script src="{% static 'js/airbnb_statchart.js' %} "></script>
+<script src="{% static 'js/wNumb.min.js' %} "></script>
+<script src="https://kit.fontawesome.com/69dd8b541f.js" crossorigin="anonymous"></script>
+<script src="{% static 'js/airbnb-entity-tab-page.js' %}"></script>
+<script type="text/javascript">
+  var getUrlParameter = function getUrlParameter(sParam) {
+    var sPageURL = window.location.search.substring(1),
+      sURLVariables = sPageURL.split('&'),
+      sParameterName,
+      i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+      sParameterName = sURLVariables[i].split('=');
+
+      if (sParameterName[0] === sParam) {
+        return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+      }
+    }
+  };
+
+  $(document).ready(function () {
+
+    var city_name = getUrlParameter('city_name').toLowerCase();
+
+    city_name = city_name.split(' ').join('');
+
+    var db_country_name = new Map();
+    db_country_name.set('austin', 'us_data');
+    db_country_name.set('boston', 'us_data');
+    db_country_name.set('chicago', 'us_data');
+    db_country_name.set('losangeles', 'us_data');
+    db_country_name.set('newyork', 'us_data');
+    db_country_name.set('bristol', 'uk_data');
+    db_country_name.set('edinburgh', 'uk_data');
+    db_country_name.set('london', 'uk_data');
+    db_country_name.set('manchester', 'uk_data');
+    db_country_name.set('milan', 'italy_data');
+    db_country_name.set('naples', 'italy_data');
+    db_country_name.set('rome', 'italy_data');
+    db_country_name.set('venice', 'italy_data');
+
+    var chartoption = {
+      min: 2009,
+      max: 2019,
+      xticks: 10, yticks: 3,
+      width: 200, height: 30
+    }
+
+    var review_chart = new ReviewChart('#reviews_bar_chart');
+    var listing_chart = new ListingChart('#listings_bar_chart');
+    var bottom_chart = new BottomChart('#');
+    var review_slider = document.getElementById('reviews_slider');
+    var listing_slider = document.getElementById('listings_slider');
+    noUiSlider.create(review_slider, {
+      connect: true,
+      behaviour: 'tap',
+      start: [chartoption.min, chartoption.max],
+      step: 1,
+      animate: true,
+      range: {
+        'min': [chartoption.min],
+        'max': [chartoption.max]
+      },
+      format: wNumb({
+        decimal: 0
+      })
+    });
+
+    noUiSlider.create(listing_slider, {
+      connect: true,
+      behaviour: 'tap',
+      start: [chartoption.min, chartoption.max],
+      step: 1,
+      animate: false,
+      range: {
+        'min': [chartoption.min],
+        'max': [chartoption.max]
+      },
+      format: wNumb({
+        decimal: 0
+      })
+    });
+
+    var handles = [
+      review_slider.getElementsByClassName('noUi-handle-lower')[0],
+      review_slider.getElementsByClassName('noUi-handle-upper')[0],
+      listing_slider.getElementsByClassName('noUi-handle-lower')[0],
+      listing_slider.getElementsByClassName('noUi-handle-upper')[0]
+    ];
+    // var labels = [
+    //   document.getElementById('reviews-lower-value'),
+    //   document.getElementById('reviews-upper-value'),
+    //   document.getElementById('listings-lower-value'),
+    //   document.getElementById('listings-upper-value')
+    // ];
+
+    review_slider.noUiSlider.on('update', function (values, handle) {
+      handles[handle].innerText = parseInt(values[handle]);
+      // lables[handle].innerText = parseInt(values[handle]);
+      // updateValues();
+      review_chart.updateRangeValues(values[0], values[1])
+    });
+
+    listing_slider.noUiSlider.on('update', function (values, handle) {
+      handles[handle + 2].innerText = parseInt(values[handle]);
+      // lables[handle].innerText = parseInt(values[handle]);
+      // updateValues();
+      listing_chart.updateRangeValues(values[0], values[1]);
+      // review_chart.initChart(result);
+      var minyear = values[0], max_year = values[1];
+      var data = $('#hidden_div').val();
+      var dataObj = [];
+      if(data != ""){
+        var reviewObj = {};
+        reviewObj['2009'] = 0;
+        reviewObj['2010'] = 0;
+        reviewObj['2011'] = 0;
+        reviewObj['2012'] = 0;
+        reviewObj['2013'] = 0;
+        reviewObj['2014'] = 0;
+        reviewObj['2015'] = 0;
+        reviewObj['2016'] = 0;
+        reviewObj['2017'] = 0;
+        reviewObj['2018'] = 0;
+        reviewObj['2019'] = 0;
+        Object.entries(data).forEach(entry => {
+          let key = entry[0];
+          let value = entry[1];
+          if(minyear<= key && max_year>=key){
+            Object.entries(value).forEach(review => {
+              reviewObj[review[0]] += review[1];
+            });
+          }
+        });
+        for(var val in reviewObj){
+          dataObj.push({"year": val, "num_of_reviews": reviewObj[val]});
+        }
+      review_chart.initChart(dataObj);
+      }
+
+      // console.log();
+    });
+    $("#flower-spinner").removeAttr('style');
+    $.ajax({
+      type: "POST",
+      url: "/loadbarchart/",
+      data: { "city_name": JSON.stringify(city_name), "country_name": JSON.stringify(db_country_name.get(city_name)), 
+      'num_of_petals': JSON.stringify($('#num_of_petals').val()), 'petal_order': JSON.stringify($('#petal_order').val()) },
+      success: function (result) { // return data if success
+        $('#hidden_div').val(result[0]['listingsReviewsInfo']);
+        // console.log(result);
+        //Bottom chart
+        $("#flower-spinner").attr("style","display: none");
+        bottom_chart.initChart(result[0]['bars']);
+
+        //stat chart 1
+        review_chart.initChart(result[0]['numReviews']);
+
+        //Stat chart 2
+        listing_chart.initChart(result[0]['numListings']);
+        var width =  document.getElementById('flower-container').offsetWidth;
+        initTabPageEntity("#neighbourhood-plot", result[0], width, $('#num_of_petals').val(), "neighbourhoods");
+        initTabPageEntity("#zipcode-plot", result[1], width, $('#num_of_petals').val(), "zipcodes");
+
+      },
+      error: function (result) {
+      }
+    });
+
+    $("#submit_stats").on('click', function () {
+      var city_name = getUrlParameter('city_name').toLowerCase();
+      $("#spinner_id").removeAttr("style");
+      // console.log(review_slider.noUiSlider.get());
+      // console.log(review_slider.getElementsByClassName('noUi-handle-upper')[0]);
+      // console.log(listing_slider.noUiSlider.get());
+      // console.log(listing_slider.getElementsByClassName('noUi-handle-upper')[0]);
+      $.ajax({
+        type: "POST",
+        url: "/regenerate",
+        data: {
+          city_name: JSON.stringify(city_name),
+          country_name: JSON.stringify(db_country_name.get(city_name)),
+          from_review_year: review_slider.noUiSlider.get()[0],
+          to_review_year: review_slider.noUiSlider.get()[1],
+          from_listing_year: listing_slider.noUiSlider.get()[0],
+          to_listing_year: listing_slider.noUiSlider.get()[1],
+          num_of_petals: JSON.stringify($('#num_of_petals').val()),
+          petal_order: JSON.stringify($('#petal_order').val()),
+          include_bungalows: JSON.stringify($("#check_box").is(":checked"))
+        },
+        success: function (result) {
+          // console.log(result);
+          d3.select('#neighbourhood-plot').selectAll("g").remove();
+          d3.select('#neighbourhood-plot').selectAll("defs").remove();
+          d3.select('#zipcode-plot').selectAll("g").remove();
+          d3.select('#zipcode-plot').selectAll("defs").remove();
+          d3.select('#neighbourhood-plot').selectAll("text").remove();
+          d3.select('#zipcode-plot').selectAll("text").remove();
+          $("#spinner_id").attr("style","display: none");
+          var width =  document.getElementById('flower-container').offsetWidth;
+          initTabPageEntity("#neighbourhood-plot", result[0], width, $('#num_of_petals').val(), "neighbourhoods");
+          initTabPageEntity("#zipcode-plot", result[1], width, $('#num_of_petals').val(), "zipcodes");
+        }
+      });
+    });
+
+  });
+</script>
+
+</html>

@@ -1,0 +1,78 @@
+{% load staticfiles %}
+<link rel="stylesheet" href="{% static 'css/airbnbapp.css' %}" />
+<html>
+{% include 'main_page_header.html' %}
+
+<body class="hold-transition skin-custom sidebar-mini">
+  <div class="wrapper">
+    <header class="main-header header-browse">
+      {% include 'main_page_title_bar.html' %}
+    </header>
+    <aside class="main-sidebar" style="width: 270px; background-color: #222d32;">
+      <section class="sidebar">
+        <ul class="sidebar-menu">
+          <li class="treeview">
+            <a class="nav-item" data-displayname="Cities" href="" style="color:#fff;">
+              <span>Cities</span>
+            </a>
+          </li>
+      </section>
+    </aside>
+
+    <div style="min-height: 100%;fill:#f9f9f9;background-color:#fff;margin-top: 50px;margin-left: 270px;
+    z-index: 800;" class="content-wrapper">
+
+      <div class="content_section" data-displayname="Airbnb" data-level="g">
+        <section class="content-header" style="padding-top: 5px;">
+          <h2>
+            Airbnb
+          </h2>
+        </section>
+        <div class="content_section" >
+          <section class="content-header">
+            <h4>
+              Cities
+            </h4>
+          </section>
+
+          <section class="content">
+            <div class="row">
+              <div class="col-xs-12" style="margin-left: 10px;">
+                <div class="row">
+                  {% for entity in entity_list %}
+                  <div class="info-box" id="{{entity.s_no}}">
+                    <div class="info-box-content">
+                      <div class="info-box-text"><div style="text-align: center;" id="{{entity.s_no}}_id" class="generateFlower">{{entity.display_name}}</div></div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script type="text/javascript">
+  $(".info-box").on('click', function () {
+    var id = this.id;
+    var cityname = $("#"+id+"_id").text();
+    console.log(cityname);
+    // selectedGenres = []
+    // $("input:checkbox[class=genreCheckBox]:checked").each(function () {
+    //   selectedGenres.push($(this).val());
+    // });
+    // if(selectedGenres.length != 0)
+      location.href = "/loadairbnbflower?city_name=" + cityname
+    // console.log("clicked");
+  })
+
+  $(document).ready(function () {
+  });
+</script>
+
+</html>
