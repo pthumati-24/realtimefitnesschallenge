@@ -1,0 +1,81 @@
+{% load staticfiles %}
+<link rel="stylesheet" href="{% static 'css/movieapp.css' %}" />
+<html>
+{% include 'main_page_header.html' %}
+
+<body class="hold-transition sidebar-mini">
+  <div class="wrapper">
+    <header class="main-header header-browse">
+      {% include 'main_page_title_bar.html' %}
+    </header>
+    <aside class="main-sidebar" style="width: 270px; background-color: #222d32;">
+      <section class="sidebar">
+        <ul class="sidebar-menu">
+          <li class="treeview">
+            <a class="nav-item" data-displayname="Genres" href="" style="color:#fff;">
+              <span>Genres</span>
+            </a>
+          </li>
+      </section>
+    </aside>
+
+    <div style="min-height: 100%;fill:#f9f9f9;background-color:#fff;margin-top: 50px;min-height: 0; margin-left: 270px; z-index: 800;"
+      class="content-wrapper">
+
+      <div class="content_section" data-displayname="Movies" data-level="g">
+        <section class="content-header" style="padding-top: 5px;">
+          <h2>
+            Movies
+          </h2>
+        </section>
+
+        <div class="content_section" data-displayname="Genres">
+
+          <section class="content-header">
+            <h4>
+              Genres
+            </h4>
+            <p style="font-size: 10px;">Select the genres from the list and click on <b>Generate</b></p>
+          </section>
+
+          <section class="content">
+            <div class="row">
+              <div class="col-xs-12" style="margin-left: 10px;">
+                <div class="row">
+                  {% for entity in entity_list %}
+                  <div class="genre-box">
+                    <div class="genre-box-content">
+                      <div class="genre-box-text">
+                        <input type="checkbox" class="genreCheckBox"
+                          value="{{entity.display_name}}">&nbsp;&nbsp;&nbsp;{{entity.display_name}}</div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            <br>
+            <div class="row">
+              <div class="col-xs-12" style="margin-left: 15px;">
+                <button class="btn btn-primary submit-btn" type="submit">Generate</button></div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script type="text/javascript">
+  $(".submit-btn").on('click', function () {
+    selectedGenres = []
+    $("input:checkbox[class=genreCheckBox]:checked").each(function () {
+      selectedGenres.push($(this).val());
+    });
+    if (selectedGenres.length != 0)
+      location.href = "/moviesflower/?genre_list=" + selectedGenres
+  })
+</script>
+
+</html>

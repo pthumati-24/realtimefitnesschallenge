@@ -1,0 +1,134 @@
+{% load staticfiles%}
+<script>
+    var director_data = {{ directors | safe }};
+    var writers_data = {{ writers | safe }};
+    var config_data = {{ config | safe }};
+    var movies_count_data = {{ statpanel_data | safe }};
+</script>
+<script src="https://kit.fontawesome.com/69dd8b541f.js" crossorigin="anonymous"></script>
+<div class="sidepanel_1strow"></div>
+<div class="sidepanel_movies_barchart" id="noofmovies_chart" style="margin-bottom: 10px; margin-top: 10px"></div>
+<div class="slider nummovies-year-slider" id="noofmovies_range" style="margin: 10px 32px;"></div>
+<div class="slider rating-year-slider" id="averagerating_chart" style="margin: 10px 32px; margin-top: 15px;"></div>
+<div class="sidepanel_rating_barchart" id="averagerating_chart"></div>
+<div class="statistics-panel" style="margin: 15px">
+    <div>
+        <b>Statistics</b><br>
+        <div style="padding-left:10px">
+            Total {{ config.total_num_years }} years of Movies from {{ config.dataset_start_year }} ~
+            {{ config.dataset_end_year }}<br>
+            <div style="padding-left:15px">
+                <span id="total_movies">{{ config.total_movies }}</span> movies in total, average
+                {{ config.avg_movies_per_year }} per year<br>
+                <span id="total_ratings">{{ config.total_votes }}</span> reviews in total, average
+                {{ config.avg_votes_per_movie }} votes per movie<br>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="control-panel" style="margin: 15px; border-top:1px rgb(204, 204, 204) solid;">
+    <div style="padding-top: 15px">
+        <b>Selected Year and Ratings Range</b>
+        <div style="padding-left:10px">
+            Movies release year range: <span class="label-as-badge" id="movies-year-start"></span> ~ <span
+                class="label-as-badge" id="movies-year-end"></span><br>
+            Ratings selection range: <span class="label-as-badge" id="ratings-start"></span> ~ <span
+                class="label-as-badge" id="ratings-end"></span><br>
+            Total <span id="total_movies_selected">0</span> movies based on current year range selection<br>
+            Total <span id="total_movies_selected_rating_based">0</span> movies based on current year and ratings range
+            selection
+        </div>
+        <div style="padding:5px">
+            <b>Include Adult content</b>
+            <input type="checkbox" style="float:left; margin:5 10 0 0" name="include-adult-content"
+                id="include-adult-content" {% if config.include_adult_content == 'true' %} checked="checked"
+                {% endif %} />
+        </div>
+        <div style="padding:5px">
+            <b>Include TV shows</b>
+            <input type="checkbox" style="float:left; margin:5 10 0 0" name="include-tv-shows" id="include-tv-shows"
+                {% if config.include_tv_shows == 'true' %} checked="checked" {% endif %} />
+        </div>
+        <div style="padding:5px">
+            <b>Number of Petals</b>
+            <input name="petals-count" id="petals-count" type="number" value="{{config.num_petals}}" min="1" max="30" />
+        </div>
+        <div style="border-radius: 4px; padding: 5px; background-color: rgb(245, 245, 245); border: 1px solid #e5e5e5;text-align: justify;">
+                <b>Variables</b>
+                <br><span><b>num_movies</b> - Number of movies written/directed by writer/director in a genre set</span>
+                <br><span><b>total_votes</b> - Total number of reviews received by the movies directed/written by director/writer</span>
+                <br><span><b>votes_per_movie</b> - Number of votes received per movie directed/written by director/writer</span>
+                <br><span><b>avg_rating</b> - The average rating of each movie directed/written by director/writer</span>
+        </div>
+        <div style="padding:5px">
+            <b>Petal Order</b>
+            <input style="width:100%;height:30px;" type="text" value="{{ config.total_influence }}" id="petal-order">
+        </div>
+        <div style="padding:5px">
+            <b>Incoming Weight Expression</b>
+            <input style="width:100%;height:30px;" type="text" value="{{ config.in_weight_expression }}"
+                id="in-weight-expression">
+        </div>
+        <div style="padding:5px">
+            <b>Outgoing Weight Expression</b>
+            <input style="width:100%;height:30px;" type="text" value="{{ config.out_weight_expression }}"
+                id="out-weight-expression">
+        </div>
+        <div align=center style="padding:5px;padding-top:30px ;">
+            <button class="btn btn-primary submit-btn" id="updateFlowerButton"><i id="spinner_id" style="display: none;" class="fas fa-spinner fa-pulse"></i>&nbsp;Update Flower</button>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/control-panel.js' %}"></script>
+<script src="{% static 'js/entity-tab-page.js' %}"></script>
+<script type="text/javascript">
+    var config = {{ config | safe }};
+    var movies_count_data = {{ statpanel_data | safe }};
+    var order_selector = document.getElementById("petal-order");
+    order_selector.value = "{{ config.total_influence }}";
+
+    updateFlowerButton.addEventListener('click', function () {
+        $("#spinner_id").removeAttr("style");
+        
+        config["num_petals"] = document.getElementById('petals-count').value;
+        config["start_year"] = parseInt(document.getElementById('movies-year-start').textContent);
+        config["end_year"] = parseInt(document.getElementById('movies-year-end').textContent);
+        config["start_rating"] = parseInt(document.getElementById('ratings-start').textContent);
+        config["end_rating"] = parseInt(document.getElementById('ratings-end').textContent);
+        config["include_adult_content"] = document.getElementById('include-adult-content').checked.toString();
+        config["include_tv_shows"] = document.getElementById('include-tv-shows').checked.toString();
+        config["in_weight_expression"] = document.getElementById('in-weight-expression').value;
+        config["out_weight_expression"] = document.getElementById('out-weight-expression').value;
+        if ($('#tab-director').hasClass('active')) {
+            config["option"] = "Director";
+        }
+        if ($('#tab-writer').hasClass('active')) {
+            config["option"] = "Writer";
+        }
+        config["total_influence"] = document.getElementById('petal-order').value;
+        var post_data = {
+            "config": config
+        };
+        $.ajax({
+            type: "POST",
+            url: "/moviesflower/",
+            data: JSON.stringify(post_data),
+            contentType: 'application/json',
+            success: function (result) {
+                $("#directors-plot").empty();
+                $("#writers-plot").empty();
+                director_data = result.directors;
+                writer_data = result.writers;
+                config_data = result.config;
+                initTabPageEntity("#directors-plot", result.directors, width, parseInt($("#petals-count").val()), "directors");
+                initTabPageEntity("#writers-plot", result.writers, width, parseInt($("#petals-count").val()), "writers");
+                $("#spinner_id").attr("style","display: none");
+            }
+        });
+    });
+
+    function orderChange() {
+        cur_num_petals = parseInt($("#num-petals").val());
+    }
+</script>

@@ -1,0 +1,164 @@
+.genre-box {
+  min-height: 50px;
+  max-height: auto;
+  border: 1px solid gray;
+  width: 260px;
+  float: left;
+  margin: 5px 0px 5px 20px;
+  color: black;
+}
+
+.genre-box-content {
+  margin-left: 5px;
+  padding: 9px 5px;
+}
+
+.genre-box-text {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.nummovies_xaxis line,
+.nummovies_xaxis path,
+.nummovies_yaxis line,
+.nummovies_yaxis path,
+.grid line,
+.grid path {
+  stroke: #ddd;
+}
+
+.nav-tabs {
+  border-bottom: none;
+}
+
+.nav-tabs>li>a.tab-btn {
+  padding: 8px 0;
+  border-radius: 0 0 5px 5px;
+  color: #000;
+  background-color: transparent;
+  border-left: 1px solid #ddd;
+  border-bottom: 5px #4587a5 solid;
+  border-top: none;
+  text-align: center;
+  width: 140px;
+  font-size: 16px;
+  margin: 0;
+}
+
+.nav-tabs>li.active>a,
+.nav-tabs>li.active>a:focus,
+.nav-tabs>li.active>a:hover,
+.nav-tabs>li.active>a.tab-btn,
+.nav-tabs>li>a.tab-btn:hover {
+  color: #000;
+  background-color: #f9f9f9;
+  border-bottom: 4px #54c2f5 solid;
+}
+
+.navbar .btn {
+  color: #666;
+  height: 50px;
+  width: 100px;
+  padding: 12px 15px;
+  font-size: 18px;
+  margin-right: 10px;
+}
+
+.nav-tabs>li>a.tab-btn.active {
+  color: #000;
+  background-color: #f9f9f9;
+  border-bottom: 6px #2c3b41 solid;
+
+}
+
+.nav-item {
+  font-size: 17px;
+}
+
+#statpane .wrapper,
+.tab-flower {
+  padding: 15px 15px;
+}
+
+.statpane-left,
+.statpane-control {
+  padding-top: 10px;
+}
+
+#movies-range .noUI-connect {
+  background: #ABBD81;
+}
+
+div#ratings-range .noUi-connect {
+  background: #F47E60;
+}
+
+.noUi-handle:after,
+.noUi-handle:before {
+  display: none !important;
+}
+
+.slider {
+  max-height: 15px !important;
+}
+
+.noUi-handle {
+  display: table;
+  text-align: center;
+  max-height: 18px !important;
+  margin-top: 3px !important;
+}
+
+.flower-edge-link {
+  fill: none;
+}
+
+.info-node-link {
+  fill: none;
+}
+
+html {
+  zoom: 80%;
+}
+
+.nummovies_xaxis line,
+.nummovies_xaxis path,
+.nummovies_yaxis line,
+.nummovies_yaxis path,
+.grid line,
+.grid path {
+  stroke: #ddd;
+}
+
+.rating_xaxis line,
+.rating_xaxis path,
+.rating_yaxis line,
+.rating_yaxis path,
+.grid line,
+.grid path {
+  stroke: #ddd;
+}
+
+.bar-nummovies {
+  fill: "#ABBD81";
+}
+
+.nummovies-year-slider {
+  margin: 10 30 6 50px!important;
+  font-size: 0.8em;
+}
+
+.rating-year-slider {
+  margin: 10 60 6 70px!important;
+  font-size: 0.8em;
+}
+
+div#noofmovies_range .noUI-connect {
+  background: #ABBD81;
+}
+
+div#averagerating_chart .noUi-connect {
+  background: #F47E60;
+}
