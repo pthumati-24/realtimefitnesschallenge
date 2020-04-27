@@ -23,13 +23,31 @@
                     </div>
 
                 </div>
-        </div>
-    </div>
+                <div>
+                    <img id="image1">
+                </div>
 
     </section>
     </div>
 
     </div>
-</body>
 
+</body>
+<script>
+    $(document).ready(function () {
+	$.ajax({
+	      type: "POST",
+	      url: "/livefeed/",
+	      data: {'credentials': JSON.stringify("dummy") },
+	      success: function (result) { // return data if success
+	        $('#image1').val(result);
+            console.log(result);
+	      },
+	      error: function (result) {
+	      console.log("ERROR!!");
+	      }
+	    });
+
+});
+</script>
 </html>

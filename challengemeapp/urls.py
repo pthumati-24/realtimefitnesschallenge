@@ -22,6 +22,7 @@ from challengemeapp.airbnbapp import views as airbnbviews
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    url(r'^livefeed', rootviews.livefe),
     url(r'^$', rootviews.main),
     url(r'^browsemovies', moviesviews.browse),
     url(r'^browseproperties', airbnbviews.browse),
