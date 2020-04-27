@@ -1,0 +1,16 @@
+table, tr, td{
+    border: 1px solid black;
+}
+
+#video-div{
+    height: 600px;
+}
+
+#counter-div{
+    height: 30px;
+    font: 3em sans-serif;
+}
+
+#counter-div, td{
+    text-align: center;
+}

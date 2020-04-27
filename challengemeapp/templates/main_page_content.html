@@ -1,35 +1,39 @@
 {% load staticfiles %}
+<link rel="stylesheet" href="{% static 'css/custom.css' %}" />
 <html>
-{% include 'main_page_header.html' %}
-
-<body class="hold-transition sidebar-mini">
-    <div class="wrapper">
-        <header class="main-header">
-            {% include 'main_page_title_bar.html' %}
-        </header>
-        <!-- Content Wrapper. Contains page content -->
-        <div class="content-wrapper" style="background-color: #fff;">
-            <!-- Main content -->
-            <section class="content">
-
-                <div class="top-panel">
-                    <div class="intro-content">
-                        <h3>
-                            <b>
-                                One on One fitness challenge
-                            </b>
-                        </h3>
-                        
+    {% include 'main_page_header.html' %}
+    <body class="hold-transition sidebar-mini">
+        <div class="wrapper">
+            <header class="main-header">
+                {% include 'main_page_title_bar.html' %}
+            </header>
+            <!-- Content Wrapper. Contains page content -->
+            <div class="content-wrapper" style="background-color: #fff;">
+                <!-- Main content -->
+                <section class="content">
+                    <div class="top-panel">
+                        <div class="intro-content">
+                            <h3>
+                                <b>
+                                    One on One fitness challenge
+                                </b>
+                            </h3>
+                        </div>
                     </div>
-
-                </div>
+                    <div class ="main-div"> 
+                        <table style="width:80%">
+                            <tr id="video-div">
+                              <td>image1</td>
+                              <td>image2</td>
+                            </tr>
+                            <tr id="counter-div">
+                              <td>Count1</td>
+                              <td>Count2</td>
+                            </tr>
+                          </table>
+                    </div>
+                </section>
+            </div>
         </div>
-    </div>
-
-    </section>
-    </div>
-
-    </div>
-</body>
-
+    </body>
 </html>
