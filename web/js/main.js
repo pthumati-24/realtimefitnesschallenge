@@ -1,5 +1,5 @@
 'use strict';
-const SIGNALING_SERVER_URL = 'http://localhost:9999';
+const SIGNALING_SERVER_URL = 'http://192.168.0.170:9999';
 const TURN_SERVER_URL = 'localhost:3478';
 const TURN_SERVER_USERNAME = 'username';
 const TURN_SERVER_CREDENTIAL = 'credential';
@@ -21,10 +21,10 @@ let startTime = null;
 
 // Define peer connections, streams and video elements.
 const localVideo = document.getElementById('localVideo');
-const remoteVideo = document.getElementById('remoteVideo');
+// const remoteVideo = document.getElementById('remoteVideo');
 
 let localStream;
-let remoteStream;
+// let remoteStream;
 
 let localPeerConnection;
 let remotePeerConnection;
@@ -46,12 +46,12 @@ function handleLocalMediaStreamError(error) {
 }
 
 // Handles remote MediaStream success by adding it as the remoteVideo src.
-function gotRemoteMediaStream(event) {
-  const mediaStream = event.stream;
-  remoteVideo.srcObject = mediaStream;
-  remoteStream = mediaStream;
-  trace('Remote peer connection received remote stream.');
-}
+// function gotRemoteMediaStream(event) {
+//   const mediaStream = event.stream;
+//   remoteVideo.srcObject = mediaStream;
+//   remoteStream = mediaStream;
+//   trace('Remote peer connection received remote stream.');
+// }
 
 
 // Add behavior for video streams.
@@ -76,8 +76,8 @@ function logResizedVideo(event) {
 }
 
 localVideo.addEventListener('loadedmetadata', logVideoLoaded);
-remoteVideo.addEventListener('loadedmetadata', logVideoLoaded);
-remoteVideo.addEventListener('onresize', logResizedVideo);
+// remoteVideo.addEventListener('loadedmetadata', logVideoLoaded);
+// remoteVideo.addEventListener('onresize', logResizedVideo);
 
 
 // Define RTC peer connection behavior.
@@ -153,27 +153,27 @@ function createdOffer(description) {
       setLocalDescriptionSuccess(localPeerConnection);
     }).catch(setSessionDescriptionError);
 
-  trace('remotePeerConnection setRemoteDescription start.');
-  remotePeerConnection.setRemoteDescription(description)
-    .then(() => {
-      setRemoteDescriptionSuccess(remotePeerConnection);
-    }).catch(setSessionDescriptionError);
+  // trace('remotePeerConnection setRemoteDescription start.');
+  // remotePeerConnection.setRemoteDescription(description)
+  //   .then(() => {
+  //     setRemoteDescriptionSuccess(remotePeerConnection);
+  //   }).catch(setSessionDescriptionError);
 
-  trace('remotePeerConnection createAnswer start.');
-  remotePeerConnection.createAnswer()
-    .then(createdAnswer)
-    .catch(setSessionDescriptionError);
+  // trace('remotePeerConnection createAnswer start.');
+  // remotePeerConnection.createAnswer()
+  //   .then(createdAnswer)
+  //   .catch(setSessionDescriptionError);
 }
 
 // Logs answer to offer creation and sets peer connection session descriptions.
 function createdAnswer(description) {
-  trace(`Answer from remotePeerConnection:\n${description.sdp}.`);
+  // trace(`Answer from remotePeerConnection:\n${description.sdp}.`);
 
-  trace('remotePeerConnection setLocalDescription start.');
-  remotePeerConnection.setLocalDescription(description)
-    .then(() => {
-      setLocalDescriptionSuccess(remotePeerConnection);
-    }).catch(setSessionDescriptionError);
+  // trace('remotePeerConnection setLocalDescription start.');
+  // remotePeerConnection.setLocalDescription(description)
+  //   .then(() => {
+  //     setLocalDescriptionSuccess(remotePeerConnection);
+  //   }).catch(setSessionDescriptionError);
 
   trace('localPeerConnection setRemoteDescription start.');
   localPeerConnection.setRemoteDescription(description)
@@ -249,13 +249,13 @@ function callAction() {
   localPeerConnection.addEventListener(
     'iceconnectionstatechange', handleConnectionChange);
 
-  remotePeerConnection = new RTCPeerConnection(servers);
-  trace('Created remote peer connection object remotePeerConnection.');
+  // remotePeerConnection = new RTCPeerConnection(servers);
+  // trace('Created remote peer connection object remotePeerConnection.');
 
-  remotePeerConnection.addEventListener('icecandidate', handleConnection);
-  remotePeerConnection.addEventListener(
-    'iceconnectionstatechange', handleConnectionChange);
-  remotePeerConnection.addEventListener('addstream', gotRemoteMediaStream);
+  // remotePeerConnection.addEventListener('icecandidate', handleConnection);
+  // remotePeerConnection.addEventListener(
+  //   'iceconnectionstatechange', handleConnectionChange);
+  // remotePeerConnection.addEventListener('addstream', gotRemoteMediaStream);
 
   // Add local stream to connection and create offer to connect.
   localPeerConnection.addStream(localStream);
@@ -265,61 +265,61 @@ function callAction() {
   localPeerConnection.createOffer(offerOptions)
     .then(createdOffer).catch(setSessionDescriptionError);
 
-  socket.on('data', (data) => {
-    console.log('Data received: ',data);
-    handleSignalingData(data);
-  });
+  // socket.on('data', (data) => {
+  //   console.log('Data received: ',data);
+  //   handleSignalingData(data);
+  // });
 
-  let handleSignalingData = (data) => {
-    switch (data.type) {
-      case 'offer':
-        // createPeerConnection();
-        remotePeerConnection.addStream(remoteStream);
-        trace('Added remote stream to remotePeerConnection.');
-        remotePeerConnection.setRemoteDescription(new RTCSessionDescription(data));
-        // sendAnswer();
-        remotePeerConnection.createAnswer().then(()=>{
-          remotePeerConnection.setLocalDescription(description)
-          .then(() => {
-            setLocalDescriptionSuccess(remotePeerConnection);
-          }).catch(setSessionDescriptionError);})
-        .catch(setSessionDescriptionError);
-        break;
-      case 'answer':
-        remotePeerConnection.setRemoteDescription(new RTCSessionDescription(data));
-        break;
-      case 'candidate':
-        remotePeerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-        break;
-    }
-  };
+  // let handleSignalingData = (data) => {
+  //   switch (data.type) {
+  //     case 'offer':
+  //       // createPeerConnection();
+  //       remotePeerConnection.addStream(remoteStream);
+  //       trace('Added remote stream to remotePeerConnection.');
+  //       remotePeerConnection.setRemoteDescription(new RTCSessionDescription(data));
+  //       // sendAnswer();
+  //       remotePeerConnection.createAnswer().then(()=>{
+  //         remotePeerConnection.setLocalDescription(description)
+  //         .then(() => {
+  //           setLocalDescriptionSuccess(remotePeerConnection);
+  //         }).catch(setSessionDescriptionError);})
+  //       .catch(setSessionDescriptionError);
+  //       break;
+  //     case 'answer':
+  //       remotePeerConnection.setRemoteDescription(new RTCSessionDescription(data));
+  //       break;
+  //     case 'candidate':
+  //       remotePeerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+  //       break;
+  //   }
+  // };
 
-  socket.on('ready', () => {
-    console.log('Ready');
-    // Connection with signaling server is ready, and so is local stream
-    // createPeerConnection();
-    remotePeerConnection.addStream(remoteStream);
-    trace('Added remote stream to remotePeerConnection.');
-    // sendOffer();
-    trace('remotePeerConnection createOffer start.');
-    remotePeerConnection.createOffer(offerOptions)
-    .then(createdOffer).catch(setSessionDescriptionError);
-  });
+  // socket.on('ready', () => {
+  //   console.log('Ready');
+  //   // Connection with signaling server is ready, and so is local stream
+  //   // createPeerConnection();
+  //   remotePeerConnection.addStream(remoteStream);
+  //   trace('Added remote stream to remotePeerConnection.');
+  //   // sendOffer();
+  //   trace('remotePeerConnection createOffer start.');
+  //   remotePeerConnection.createOffer(offerOptions)
+  //   .then(createdOffer).catch(setSessionDescriptionError);
+  // });
 
-  let sendData = (data) => {
-    socket.emit('data', data);
-  };
+  // let sendData = (data) => {
+  //   socket.emit('data', data);
+  // };
 
-  socket.connect();
+  // socket.connect();
 
 }
 
 // Handles hangup action: ends up call, closes connections and resets peers.
 function hangupAction() {
   localPeerConnection.close();
-  remotePeerConnection.close();
+  // remotePeerConnection.close();
   localPeerConnection = null;
-  remotePeerConnection = null;
+  // remotePeerConnection = null;
   hangupButton.disabled = true;
   callButton.disabled = false;
   trace('Ending call.');
@@ -352,3 +352,107 @@ function trace(text) {
 
   console.log(now, text);
 }
+
+let socket = io(SIGNALING_SERVER_URL, { autoConnect: false });
+
+socket.on('data', (data) => {
+  console.log('Data received: ',data);
+  handleSignalingData(data);
+});
+
+socket.on('ready', () => {
+  console.log('Ready');
+  // Connection with signaling server is ready, and so is local stream
+  createPeerConnection();
+  sendOffer();
+});
+
+let sendData = (data) => {
+  socket.emit('data', data);
+};
+
+// WebRTC methods
+let pc;
+let someStream;
+let remoteStreamElement = document.getElementById('remoteVideo');
+
+let getLocalStream = () => {
+  navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+    .then((stream) => {
+      console.log('Stream found');
+      someStream = stream;
+      // Connect after making sure that local stream is availble
+      socket.connect();
+    })
+    .catch(error => {
+      console.error('Stream not found: ', error);
+    });
+}
+
+let createPeerConnection = () => {
+  try {
+    pc = new RTCPeerConnection(PC_CONFIG);
+    pc.onicecandidate = onIceCandidate;
+    pc.onaddstream = onAddStream;
+    pc.addStream(someStream);
+    console.log('PeerConnection created');
+  } catch (error) {
+    console.error('PeerConnection failed: ', error);
+  }
+};
+
+let sendOffer = () => {
+  console.log('Send offer');
+  pc.createOffer().then(
+    setAndSendLocalDescription,
+    (error) => { console.error('Send offer failed: ', error); }
+  );
+};
+
+let sendAnswer = () => {
+  console.log('Send answer');
+  pc.createAnswer().then(
+    setAndSendLocalDescription,
+    (error) => { console.error('Send answer failed: ', error); }
+  );
+};
+
+let setAndSendLocalDescription = (sessionDescription) => {
+  pc.setLocalDescription(sessionDescription);
+  console.log('Local description set');
+  sendData(sessionDescription);
+};
+
+let onIceCandidate = (event) => {
+  if (event.candidate) {
+    console.log('ICE candidate');
+    sendData({createdAnswer
+      type: 'candidate',
+      candidate: event.candidate
+    });
+  }
+};
+
+let onAddStream = (event) => {
+  console.log('Add stream');
+  remoteStreamElement.srcObject = event.stream;
+};
+
+let handleSignalingData = (data) => {
+  switch (data.type) {
+    case 'offer':
+      createPeerConnection();
+      pc.setRemoteDescription(new RTCSessionDescription(data));
+      sendAnswer();
+      break;
+    case 'answer':
+      pc.setRemoteDescription(new RTCSessionDescription(data));
+      break;
+    case 'candidate':
+      pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+      break;
+  }
+};
+
+// Start connection
+getLocalStream();
