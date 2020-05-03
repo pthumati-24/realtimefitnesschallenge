@@ -223,31 +223,32 @@ function callAction() {
   
   // WebRTC config: you don't have to change this for the example to work
   // If you are testing on localhost, you can just use PC_CONFIG = {}
-  const servers = {                 // Allows for RTC server configuration.
-    iceServers: [
-      {
-        urls: 'turn:' + TURN_SERVER_URL + '?transport=tcp',
-        username: TURN_SERVER_USERNAME,
-        credential: TURN_SERVER_CREDENTIAL
-      },
-      {
-        urls: 'turn:' + TURN_SERVER_URL + '?transport=udp',
-        username: TURN_SERVER_USERNAME,
-        credential: TURN_SERVER_CREDENTIAL
-      }
-    ]
-  };
+  // const servers = {                 // Allows for RTC server configuration.
+  //   iceServers: [
+  //     {
+  //       urls: 'turn:' + TURN_SERVER_URL + '?transport=tcp',
+  //       username: TURN_SERVER_USERNAME,
+  //       credential: TURN_SERVER_CREDENTIAL
+  //     },
+  //     {
+  //       urls: 'turn:' + TURN_SERVER_URL + '?transport=udp',
+  //       username: TURN_SERVER_USERNAME,
+  //       credential: TURN_SERVER_CREDENTIAL
+  //     }
+  //   ]
+  // };
  
   // Signaling methods
-  let socket = io(SIGNALING_SERVER_URL, { autoConnect: false });
+  // let socket = io(SIGNALING_SERVER_URL, { autoConnect: false });
+  getLocalStream();
 
   // Create peer connections and add behavior.
-  localPeerConnection = new RTCPeerConnection(null);
-  trace('Created local peer connection object localPeerConnection.');
+  // localPeerConnection = new RTCPeerConnection(null);
+  // trace('Created local peer connection object localPeerConnection.');
 
-  localPeerConnection.addEventListener('icecandidate', handleConnection);
-  localPeerConnection.addEventListener(
-    'iceconnectionstatechange', handleConnectionChange);
+  // localPeerConnection.addEventListener('icecandidate', handleConnection);
+  // localPeerConnection.addEventListener(
+  //   'iceconnectionstatechange', handleConnectionChange);
 
   // remotePeerConnection = new RTCPeerConnection(servers);
   // trace('Created remote peer connection object remotePeerConnection.');
@@ -258,12 +259,12 @@ function callAction() {
   // remotePeerConnection.addEventListener('addstream', gotRemoteMediaStream);
 
   // Add local stream to connection and create offer to connect.
-  localPeerConnection.addStream(localStream);
-  trace('Added local stream to localPeerConnection.');
+  // localPeerConnection.addStream(localStream);
+  // trace('Added local stream to localPeerConnection.');
 
-  trace('localPeerConnection createOffer start.');
-  localPeerConnection.createOffer(offerOptions)
-    .then(createdOffer).catch(setSessionDescriptionError);
+  // trace('localPeerConnection createOffer start.');
+  // localPeerConnection.createOffer(offerOptions)
+  //   .then(createdOffer).catch(setSessionDescriptionError);
 
   // socket.on('data', (data) => {
   //   console.log('Data received: ',data);
@@ -426,7 +427,7 @@ let setAndSendLocalDescription = (sessionDescription) => {
 let onIceCandidate = (event) => {
   if (event.candidate) {
     console.log('ICE candidate');
-    sendData({createdAnswer
+    sendData({
       type: 'candidate',
       candidate: event.candidate
     });
@@ -455,4 +456,3 @@ let handleSignalingData = (data) => {
 };
 
 // Start connection
-getLocalStream();
