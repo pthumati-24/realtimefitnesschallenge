@@ -28,4 +28,4 @@ async def data(sid, data):
 
 
 if __name__ == '__main__':
-    web.run_app(app, port=9999)
+    web.run_app(app, port=9999, host="192.168.0.170")
