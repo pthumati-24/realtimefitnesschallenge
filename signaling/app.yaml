@@ -1,0 +1,3 @@
+runtime: python37
+service: signalling
+entrypoint: python server.py
