@@ -3,7 +3,7 @@
 
 <head>
   <title>Realtime communication with WebRTC</title>
-  <link rel="stylesheet" href="css/main.css" />
+  <!-- <link rel="stylesheet" href="css/main.css" /> -->
 </head>
 
 <body>
@@ -18,19 +18,23 @@
     <button id="hangupButton">Hang Up</button>
   </div>
 
-  <textarea id="dataChannelSend" disabled
+  <textarea id="dataChannelSend"
+    placeholder="Press Start, enter some text, then press Send."></textarea>
+  <textarea id="dataChannelClient" disabled
     placeholder="Press Start, enter some text, then press Send."></textarea>
   <textarea id="dataChannelReceive" disabled></textarea>
 
   <div id="buttons">
-    <button id="startButton1">Start</button>
+    <!-- <button id="startButton1">Start</button> -->
     <button id="sendButton1">Send</button>
-    <button id="closeButton1">Stop</button>
+    <!-- <button id="closeButton1">Stop</button> -->
   </div>
 
+
+  <script src="static/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
   <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
   <script src="static/main.js"></script>
-  <script src="static/main1.js"></script>
-  <script src="static/socket.io.js"></script>
+  <!-- <script src="static/main1.js"></script> -->
 </body>
 </html>
