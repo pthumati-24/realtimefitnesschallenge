@@ -2,7 +2,7 @@ import datetime
 
 from flask import Flask, render_template
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path="/static/dist", static_folder="./static/dist", template_folder="./static/dist")
 
 
 @app.route('/')

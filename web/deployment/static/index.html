@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Realtime communication with WebRTC</title>
+  <!-- <link rel="stylesheet" href="css/main.css" /> -->
+
+</head>
+
+<body>
+  <h1>Realtime communication with WebRTC</h1>
+
+  <div id="main">
+        <video id="localVideo" autoplay="" playsinline="" style="display: none;">
+        </video>
+        <canvas id="output">
+    </canvas></div>
+  Reps completed
+    <p id="repcount"></p>
+  <!-- <video id="localVideo" autoplay playsinline></video> -->
+  <video id="remoteVideo" autoplay="" playsinline=""></video>
+
+  <div>
+    <button id="startButton">Start</button>
+    <button id="callButton">Call</button>
+    <button id="hangupButton">Hang Up</button>
+  </div>
+
+  <textarea id="dataChannelSend" placeholder="Press Start, enter some text, then press Send."></textarea>
+  <textarea id="dataChannelClient" disabled="" placeholder="Press Start, enter some text, then press Send."></textarea>
+  <textarea id="dataChannelReceive" disabled=""></textarea>
+
+  <div id="buttons">
+    <!-- <button id="startButton1">Start</button> -->
+    <button id="sendButton1">Send</button>
+    <!-- <button id="closeButton1">Stop</button> -->
+  </div>
+
+
+  
+  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+  <script src="static/socket.io.74b39866.js"></script>
+  <script src="static/main.1f19ae8e.js"></script>
+  <!-- <script src="camera_webrtc.js"></script> -->
+</body>
+</html>

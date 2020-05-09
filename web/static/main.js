@@ -1,10 +1,244 @@
 'use strict';
+// import * as camrtc from './camera_webrtc.js';
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+import * as posenet from '@tensorflow-models/posenet';
+import dat from 'dat.gui';
+import Stats from 'stats.js';
+import io from 'socket.io-client';
+
+import {drawBoundingBox, drawKeypoints, drawSkeleton, isMobile, toggleLoadingUI, tryResNetButtonName, tryResNetButtonText, updateTryResNetButtonDatGuiCss} from './demo_util';
+
+    let soc = io('https://messaging-dot-ccproject2-274303.wl.r.appspot.com');
+    var connected=true;
+  const sendMessage = (message) => {
+    // var message = "Hi, I'm user " + username + ". This is a message from me.";
+    // if there is a non-empty message and a socket connection
+    if (message && connected) {
+      // tell server to execute 'new message' and send along one parameter
+      dataChannelClient.value = message;
+      soc.emit('new message', message);
+    }
+
+  }
+
+const videoWidth = 600;
+const videoHeight = 500;
+const stats = new Stats();
+
+const defaultQuantBytes = 2;
+
+const defaultMobileNetMultiplier = isMobile() ? 0.50 : 0.75;
+const defaultMobileNetStride = 16;
+const defaultMobileNetInputResolution = 500;
+
+const defaultResNetMultiplier = 1.0;
+const defaultResNetStride = 32;
+const defaultResNetInputResolution = 250;
+
+const guiState = {
+  algorithm: 'multi-pose',
+  input: {
+    architecture: 'MobileNetV1',
+    outputStride: defaultMobileNetStride,
+    inputResolution: defaultMobileNetInputResolution,
+    multiplier: defaultMobileNetMultiplier,
+    quantBytes: defaultQuantBytes
+  },
+  singlePoseDetection: {
+    minPoseConfidence: 0.1,
+    minPartConfidence: 0.5,
+  },
+  multiPoseDetection: {
+    maxPoseDetections: 5,
+    minPoseConfidence: 0.15,
+    minPartConfidence: 0.1,
+    nmsRadius: 30.0,
+  },
+  output: {
+    showVideo: true,
+    showSkeleton: true,
+    showPoints: true,
+    showBoundingBox: false,
+  },
+  net: null,
+};
+
+
+/**
+ * Sets up dat.gui controller on the top-right of the window
+ */
+
+
+/**
+ * Sets up a frames per second panel on the top-left of the window
+ */
+
+
+function updateRepcount(keypoints)
+{
+  
+  var r_shoulder = keypoints[6].position;
+  var r_elbow = keypoints[8].position;
+  var r_wrist = keypoints[10].position;
+
+  // console.log(r_shoulder);
+  // console.log(r_elbow);
+  // console.log(r_wrist);
+  var elbow_wrist_slope = (r_elbow.y - r_wrist.y) / (r_elbow.x - r_wrist.x);
+  var shoulder_elbow_slope = (r_shoulder.y - r_elbow.y) / (r_shoulder.x - r_elbow.x);
+  var angle = Math.atan((shoulder_elbow_slope -elbow_wrist_slope)/(1 + (shoulder_elbow_slope*elbow_wrist_slope)));
+  angle = angle * (180/Math.PI);
+
+  // console.log(angle);
+  if (updateRepcount.startrep == 0 && angle <=0 && angle >=-10)
+  {
+    updateRepcount.startrep=1;
+    console.log("rep started");
+  }
+   else if (updateRepcount.startrep ==1 && angle <=-80 && angle >=-90)
+  {
+      updateRepcount.maxreach=1;
+      console.log("max reached");
+  }
+  else if (updateRepcount.maxreach==1 && angle <=0 && angle >= -10)
+  {
+    console.log("rep end");
+    updateRepcount.repcount+=1
+    updateRepcount.maxreach=0
+    updateRepcount.endrep == 1
+  }
+
+  return updateRepcount.repcount;
+}
+
+updateRepcount.repcount=0;
+updateRepcount.startrep =0;
+updateRepcount.maxreach =0;
+updateRepcount.endrep =0;
+/**
+ * Feeds an image to posenet to estimate poses - this is where the magic
+ * happens. This function loops with a requestAnimationFrame method.
+ */
+function detectPoseInRealTime(video, net) {
+  const canvas = document.getElementById('output');
+  const ctx = canvas.getContext('2d');
+
+  // since images are being fed from a webcam, we want to feed in the
+  // original image and then just flip the keypoints' x coordinates. If instead
+  // we flip the image, then correcting left-right keypoint pairs requires a
+  // permutation on all the keypoints.
+  const flipPoseHorizontal = true;
+
+  canvas.width = videoWidth;
+  canvas.height = videoHeight;
+
+  async function poseDetectionFrame() {
+
+    // Begin monitoring code for frames per second
+    stats.begin();
+
+    let poses = [];
+    let minPoseConfidence;
+    let minPartConfidence;
+
+        const pose = await guiState.net.estimatePoses(video, {
+          flipHorizontal: flipPoseHorizontal,
+          decodingMethod: 'single-person'
+        });
+        poses = poses.concat(pose);
+        minPoseConfidence = +guiState.singlePoseDetection.minPoseConfidence;
+        minPartConfidence = +guiState.singlePoseDetection.minPartConfidence;
+
+    ctx.clearRect(0, 0, videoWidth, videoHeight);
+
+    //console.log(guiState.output.showVideo);
+    if (guiState.output.showVideo) {
+      ctx.save();
+      ctx.scale(-1, 1);
+      ctx.translate(-videoWidth, 0);
+      ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
+      ctx.restore();
+    }
+    // console.log()
+    var repcount = updateRepcount(poses[0].keypoints);
+    
+      sendMessage(repcount);
+    
+    // document.getElementById("repcount").innerHTML = repcount;
+    // For each pose (i.e. person) detected in an image, loop through the poses
+    // and draw the resulting skeleton and keypoints if over certain confidence
+    // scores
+
+    poses.forEach(({score, keypoints}) => {
+      if (score >= minPoseConfidence) {
+        if (guiState.output.showPoints) {
+         
+         // console.log(keypoints);
+          drawKeypoints(keypoints, minPartConfidence, ctx);
+        }
+        if (guiState.output.showSkeleton) {
+          drawSkeleton(keypoints, minPartConfidence, ctx);
+        }
+        if (guiState.output.showBoundingBox) {
+          drawBoundingBox(keypoints, ctx);
+        }
+      }
+    });
+
+    // End monitoring code for frames per second
+    stats.end();
+
+    requestAnimationFrame(poseDetectionFrame);
+  }
+
+  poseDetectionFrame();
+}
+
+/**
+ * Kicks off the demo by loading the posenet model, finding and loading
+ * available camera devices, and setting off the detectPoseInRealTime function.
+ */
+ async function runmodel(video) {
+  //toggleLoadingUI(true);
+  const net = await posenet.load({
+    architecture: guiState.input.architecture,
+    outputStride: guiState.input.outputStride,
+    inputResolution: guiState.input.inputResolution,
+    multiplier: guiState.input.multiplier,
+    quantBytes: guiState.input.quantBytes
+  });
+  //toggleLoadingUI(false);
+
+  
+  guiState.net = net;
+  console.log("running detectposeinrealtime");
+  detectPoseInRealTime(video, net);
+}
+
+
+// export {runmodel}
+
+
 const SIGNALING_SERVER_URL = 'https://signalling-dot-ccproject2-274303.wl.r.appspot.com';
 const TURN_SERVER_URL = '34.69.75.114:3478';
 const TURN_SERVER_USERNAME = 'user';
 const TURN_SERVER_CREDENTIAL = 'test';
 // Set up media stream constant and parameters.
-
 const PC_CONFIG = {
   iceServers: [
     {
@@ -18,7 +252,11 @@ const PC_CONFIG = {
 // In this codelab, you will be streaming video only: "video: true".
 // Audio will not be streamed because it is set to "audio: false" by default.
 const mediaStreamConstraints = {
-  video: true,
+  'video': {
+      facingMode: 'user',
+      width: videoWidth,
+      height: videoHeight,
+    },
 };
 
 // Set up to exchange only video.
@@ -31,6 +269,8 @@ let startTime = null;
 
 // Define peer connections, streams and video elements.
 const localVideo = document.getElementById('localVideo');
+localVideo.width = videoWidth;
+localVideo.height = videoHeight;
 // const remoteVideo = document.getElementById('remoteVideo');
 
 let localStream;
@@ -43,8 +283,6 @@ let remotePeerConnection;
 let pc;
 let someStream;
 let remoteStreamElement = document.getElementById('remoteVideo');
-
-let socket = io(SIGNALING_SERVER_URL, { autoConnect: false });
 
 
 
@@ -71,6 +309,8 @@ function logVideoLoaded(event) {
   const video = event.target;
   trace(`${video.id} videoWidth: ${video.videoWidth}px, ` +
     `videoHeight: ${video.videoHeight}px.`);
+
+  // runmodel(video);
 }
 
 // Logs a message with the id and size of a video element.
@@ -197,6 +437,7 @@ function startAction() {
 
 // Handles call button action: creates peer connection.
 function callAction() {
+
   callButton.disabled = true;
   hangupButton.disabled = false;
 
@@ -213,7 +454,7 @@ function callAction() {
     trace(`Using audio device: ${audioTracks[0].label}.`);
   }
 
-
+  let socket = io(SIGNALING_SERVER_URL, { autoConnect: false });
   // let socket = io(SIGNALING_SERVER_URL, { autoConnect: false });
 
   socket.on('data', (data) => {
@@ -294,6 +535,9 @@ function callAction() {
   let onAddStream = (event) => {
     console.log('Add stream');
     remoteStreamElement.srcObject = event.stream;
+
+    //start posenet
+    runmodel(localVideo);
   };
 
   let handleSignalingData = (data) => {
@@ -361,22 +605,22 @@ function trace(text) {
 
 $(function () {
   var username;
-  var connected = true;
-  let soc = io('https://messaging-dot-ccproject2-274303.wl.r.appspot.com');
+  var connected = false;
+  
   // let soc = io();
   // Sets the client's username
-  const setUsername = () => {
-    var array = new Uint32Array(1);
-    window.crypto.getRandomValues(array);
-    username = array;
+  // const setUsername = () => {
+  //   var array = new Uint32Array(1);
+  //   window.crypto.getRandomValues(array);
+  //   username = array;
 
-    // If the username is valid
-    if (username) {
+  //   // If the username is valid
+  //   if (username) {
 
-      // Tell the server your username
-      soc.emit('add user', username);
-    }
-  }
+  //     // Tell the server your username
+  //     soc.emit('add user', username);
+  //   }
+  // }
 
   const sendButton1 = document.getElementById('sendButton1');
   var dataChannelSend = document.querySelector('textarea#dataChannelSend');
@@ -385,7 +629,7 @@ $(function () {
   var dataChannelReceive = document.querySelector('textarea#dataChannelReceive');
   // var counterElement = document.querySelector('p#counter');
 
-  // sendButton1.addEventListener('click', onSendButton1);
+  sendButton1.addEventListener('click', onSendButton1);
 
   // counterElement.addEventListener("change", function() {
   //   var message = counterElement.value;
@@ -420,23 +664,15 @@ $(function () {
   }
 
   // Sends a chat message
-  const sendMessage = (message) => {
-    // var message = "Hi, I'm user " + username + ". This is a message from me.";
-    // if there is a non-empty message and a socket connection
-    if (message && connected) {
-      // tell server to execute 'new message' and send along one parameter
-      dataChannelClient.value = message;
-      soc.emit('new message', message);
-    }
-  }
-  if (username) {
-    sendMessage();
-    soc.emit('stop typing');
-    typing = false;
-  } else {
-    setUsername();
-    sendMessage();
-  }
+
+  // if (username) {
+  //   sendMessage();
+  //   soc.emit('stop typing');
+  //   typing = false;
+  // } else {
+  //   setUsername();
+  //   sendMessage();
+  // }
   // Log a message
   const log = (message, options) => {
     console.log(message);
@@ -458,36 +694,35 @@ $(function () {
   soc.on('login', (data) => {
     connected = true;
     // Display the welcome message
-    var message = "Welcome to Socket.IO Chat – ";
+    var message = "Welcome to ChallengeMe";
     log(message, {
       prepend: true
     });
     addParticipantsMessage(data);
   });
 
-  // Whenever the server emits 'new message', update the chat body
   soc.on('new message', (data) => {
     log(data);
     dataChannelReceive.value = data.message;
-  });
+  })
 
-  // Whenever the server emits 'user joined', log it in the chat body
+  // // Whenever the server emits 'user joined', log it in the chat body
   soc.on('user joined', (data) => {
     log(data.username + ' joined');
   });
 
-  // Whenever the server emits 'user left', log it in the chat body
+  // // Whenever the server emits 'user left', log it in the chat body
   soc.on('user left', (data) => {
     log(data.username + ' left');
     addParticipantsMessage(data);
   });
 
-  // Whenever the server emits 'typing', show the typing message
+  // // Whenever the server emits 'typing', show the typing message
   soc.on('typing', (data) => {
     log(data);
   });
 
-  // Whenever the server emits 'stop typing', kill the typing message
+  // // Whenever the server emits 'stop typing', kill the typing message
   soc.on('stop typing', (data) => {
     log(data);
   });
