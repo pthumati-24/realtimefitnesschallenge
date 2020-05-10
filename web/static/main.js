@@ -565,7 +565,8 @@ function callAction() {
 
 // Handles hangup action: ends up call, closes connections and resets peers.
 function hangupAction() {
-
+  pc.close();
+  pc = nulll;
   someStream.getTracks().forEach(t => t.stop());
   hangupButton.disabled = true;
   callButton.disabled = false;
@@ -622,14 +623,14 @@ $(function () {
   //   }
   // }
 
-  const sendButton1 = document.getElementById('sendButton1');
+  // const sendButton1 = document.getElementById('sendButton1');
   var dataChannelSend = document.querySelector('textarea#dataChannelSend');
   var dataChannelClient = document.querySelector('textarea#dataChannelClient');
   var dataChannelReceive = document.querySelector('textarea#dataChannelReceive');
   var dataChannelReceive = document.querySelector('textarea#dataChannelReceive');
   // var counterElement = document.querySelector('p#counter');
 
-  sendButton1.addEventListener('click', onSendButton1);
+  // sendButton1.addEventListener('click', onSendButton1);
 
   // counterElement.addEventListener("change", function() {
   //   var message = counterElement.value;
