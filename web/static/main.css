@@ -12,6 +12,9 @@ body {
     font-size: 40px;
 }
 
+nav{
+	background-color: #6e84ee !important;	
+}
 /*video {
   max-width: 100%;
   width: 320px;

@@ -33,10 +33,11 @@
 
     <div class="row" id="main">
       <div class="col s6">
-          <video id="localVideo" autoplay playsinline ></video>
+          <video id="localVideo" autoplay playsinline style="display: none;"></video>
+          <canvas id="output"></canvas>
       </div>
       <div class="col s6">
-          <!-- <canvas id="output"></canvas> -->
+          
           <video id="remoteVideo" autoplay playsinline></video>
       </div>
     </div>
@@ -44,8 +45,8 @@
       <!-- <p id="repcount"></p> -->
     <!-- <video id="localVideo" autoplay playsinline></video> -->
     <div class="row">
-      <div class="col s6" style="color: white"><center ><div id="dataChannelClient" class="odometer">10</div></center></div>
-      <div class="col s6" style="color: white"><center><div id="dataChannelReceive" class="odometer">12</div></center></div>
+      <div class="col s6" style="color: white"><center ><div id="dataChannelClient" class="odometer">0</div></center></div>
+      <div class="col s6" style="color: white"><center><div id="dataChannelReceive" class="odometer">0</div></center></div>
     </div>
 
     <div class="row">

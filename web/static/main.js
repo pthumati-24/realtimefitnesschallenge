@@ -23,6 +23,8 @@ import io from 'socket.io-client';
 
 import {drawBoundingBox, drawKeypoints, drawSkeleton, isMobile, toggleLoadingUI, tryResNetButtonName, tryResNetButtonText, updateTryResNetButtonDatGuiCss} from './demo_util';
 
+var room_connected;
+
     let soc = io('https://messaging-dot-ccproject2-274303.wl.r.appspot.com');
     var connected=true;
   const sendMessage = (message) => {
@@ -31,10 +33,11 @@ import {drawBoundingBox, drawKeypoints, drawSkeleton, isMobile, toggleLoadingUI,
     if (message && connected) {
       // tell server to execute 'new message' and send along one parameter
       dataChannelClient.value = message;
-      soc.emit('new message', message);
+      soc.to(room_connected).emit('new message', message);
     }
 
   }
+
 
 const videoWidth = 600;
 const videoHeight = 500;
@@ -88,6 +91,54 @@ const guiState = {
  * Sets up a frames per second panel on the top-left of the window
  */
 
+var sendrep = (data) => {
+    socket.emit('repdata', data);
+    dataChannelClient.innerHTML = data;
+  };
+
+function situpRepcount(keypoints)
+{
+  
+  var r_hip = keypoints[12].position;
+  var r_knee = keypoints[14].position;
+  var r_ankle = keypoints[16].position;
+
+  // console.log(r_shoulder);
+  // console.log(r_elbow);
+  // console.log(r_wrist);
+  var hip_knee_slope = (r_hip.y - r_knee.y) / (r_hip.x - r_knee.x);
+  var knee_ankle_slope = (r_knee.y - r_ankle.y) / (r_knee.x - r_ankle.x);
+  var angle = Math.atan(( hip_knee_slope - knee_ankle_slope)/(1 + ( hip_knee_slope * knee_ankle_slope)));
+  angle = angle * (180/Math.PI);
+
+  console.log(angle);
+  if (situpRepcount.startrep == 0 && angle <= 10 && angle >= 0)
+  {
+    situpRepcount.startrep=1;
+    situpRepcount.preval = r_hip.y;
+    console.log("rep started");
+  }
+   else if (situpRepcount.startrep ==1 && angle <= -35 && angle >= -45)
+  {
+      situpRepcount.maxreach=1;
+      situpRepcount.currval = r_hip.y;
+      console.log("max reached");
+  }
+  else if (situpRepcount.maxreach==1 && angle <= 10 && angle >= 0 && situpRepcount.currval < situpRepcount.preval)
+  {
+    console.log("rep end");
+    situpRepcount.repcount+=1
+    situpRepcount.maxreach=0
+  }
+
+  return situpRepcount.repcount;
+}
+
+situpRepcount.repcount=0;
+situpRepcount.startrep =0;
+situpRepcount.maxreach =0;
+situpRepcount.preval = 0;
+situpRepcount.currval = 0;
 
 function updateRepcount(keypoints)
 {
@@ -130,6 +181,8 @@ updateRepcount.repcount=0;
 updateRepcount.startrep =0;
 updateRepcount.maxreach =0;
 updateRepcount.endrep =0;
+
+var startrepcount =0;
 /**
  * Feeds an image to posenet to estimate poses - this is where the magic
  * happens. This function loops with a requestAnimationFrame method.
@@ -175,10 +228,13 @@ function detectPoseInRealTime(video, net) {
       ctx.restore();
     }
     // console.log()
-    var repcount = updateRepcount(poses[0].keypoints);
-    
-      sendMessage(repcount);
-    
+    //var repcount = updateRepcount(poses[0].keypoints);
+    var repcount = situpRepcount(poses[0].keypoints);
+    if(startrepcount === 1)
+    {
+      console.log(repcount);
+      sendrep(repcount);
+    }
     // document.getElementById("repcount").innerHTML = repcount;
     // For each pose (i.e. person) detected in an image, loop through the poses
     // and draw the resulting skeleton and keypoints if over certain confidence
@@ -294,6 +350,8 @@ function gotLocalMediaStream(mediaStream) {
   localStream = mediaStream;
   trace('Received local stream.');
   callButton.disabled = false;  // Enable call button.
+
+  // runmodel(localVideo);
 }
 
 // Handles error by logging a message to the console.
@@ -421,7 +479,7 @@ function createdAnswer(description) {
 const startButton = document.getElementById('startButton');
 const callButton = document.getElementById('callButton');
 const hangupButton = document.getElementById('hangupButton');
-
+const countdowntext = document.getElementById('countdown');
 // Set up initial action buttons status: disable call and hangup.
 callButton.disabled = true;
 hangupButton.disabled = true;
@@ -436,6 +494,7 @@ function startAction() {
 }
 
 // Handles call button action: creates peer connection.
+var socket;
 function callAction() {
 
   callButton.disabled = true;
@@ -454,7 +513,7 @@ function callAction() {
     trace(`Using audio device: ${audioTracks[0].label}.`);
   }
 
-  let socket = io(SIGNALING_SERVER_URL, { autoConnect: false });
+  socket = io(SIGNALING_SERVER_URL, { autoConnect: false });
   // let socket = io(SIGNALING_SERVER_URL, { autoConnect: false });
 
   socket.on('data', (data) => {
@@ -462,17 +521,58 @@ function callAction() {
     handleSignalingData(data);
   });
 
+  socket.on('room', (data) => {
+    console.log('ROOM CONNECTED: ', data);
+    room_connected = data;
+    //tell messaging server to connect me to this room_connected
+    soc.emit('room', room_connected);
+  });
+
   socket.on('ready', () => {
     console.log('Ready');
+
+    // var rooms = Object.keys(socket.rooms); //Object.keys(socket.rooms).filter(item => item!=socket.id);
+    // console.log(rooms);
     // Connection with signaling server is ready, and so is local stream
     createPeerConnection();
     sendOffer();
   });
 
+  socket.on('repdata', (data) => {
+    console.log("received rep data");
+    dataChannelReceive.innerHTML = data;
+  })
+
   let sendData = (data) => {
     socket.emit('data', data);
   };
 
+  socket.on('countdown', () => {
+
+    //countdowntext.innerHTML = data;
+    // console.log(data);
+    // if(data == '5')
+    // {
+    //   runmodel(localVideo);
+    // }
+
+    // var timeleft = 10;
+    // var downloadTimer = setInterval(function(){
+
+    //   if(timeleft <= 0){
+    //     clearInterval(downloadTimer);
+    //   }
+    //   //document.getElementById("progressBar").value = 10 - timeleft;
+    //   console.log(timeleft);
+    //   timeleft -= 1;
+    //   }, 1000);
+    
+    //   console.log("after timer" + timeleft);
+    //   if (timeleft ===0){
+      startrepcount = 1;
+    //}
+    
+  })  
 
 
   let getLocalStream = () => {
@@ -532,12 +632,18 @@ function callAction() {
     }
   };
 
+  var startmatch = () =>
+  {
+    socket.emit('startmatch');
+  }
   let onAddStream = (event) => {
     console.log('Add stream');
     remoteStreamElement.srcObject = event.stream;
 
     //start posenet
+    
     runmodel(localVideo);
+    startmatch();
   };
 
   let handleSignalingData = (data) => {
@@ -565,8 +671,7 @@ function callAction() {
 
 // Handles hangup action: ends up call, closes connections and resets peers.
 function hangupAction() {
-  pc.close();
-  pc = nulll;
+
   someStream.getTracks().forEach(t => t.stop());
   hangupButton.disabled = true;
   callButton.disabled = false;
@@ -623,14 +728,14 @@ $(function () {
   //   }
   // }
 
-  // const sendButton1 = document.getElementById('sendButton1');
-  var dataChannelSend = document.querySelector('textarea#dataChannelSend');
-  var dataChannelClient = document.querySelector('textarea#dataChannelClient');
-  var dataChannelReceive = document.querySelector('textarea#dataChannelReceive');
-  var dataChannelReceive = document.querySelector('textarea#dataChannelReceive');
+  //const sendButton1 = document.getElementById('sendButton1');
+  //var dataChannelSend = document.getElementById('textarea#dataChannelSend');
+  var dataChannelClient = document.getElementById('dataChannelClient');
+  var dataChannelReceive = document.getElementById('dataChannelReceive');
+  //var dataChannelReceive = document.querySelector('textarea#dataChannelReceive');
   // var counterElement = document.querySelector('p#counter');
 
-  // sendButton1.addEventListener('click', onSendButton1);
+  //sendButton1.addEventListener('click', onSendButton1);
 
   // counterElement.addEventListener("change", function() {
   //   var message = counterElement.value;
@@ -658,11 +763,11 @@ $(function () {
   // demo();
 
   // Handles start button action: creates local MediaStream.
-  function onSendButton1() {
-    trace('clicked msg start button');
-    var message = dataChannelSend.value;
-    sendMessage(message);
-  }
+  // function onSendButton1() {
+  //   trace('clicked msg start button');
+  //   var message = dataChannelSend.value;
+  //   sendMessage(message);
+  // }
 
   // Sends a chat message
 
