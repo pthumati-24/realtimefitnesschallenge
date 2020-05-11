@@ -1,21 +1,5 @@
 'use strict';
-// import * as camrtc from './camera_webrtc.js';
-/**
- * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
+
 import * as posenet from '@tensorflow-models/posenet';
 import dat from 'dat.gui';
 import Stats from 'stats.js';
@@ -28,8 +12,7 @@ var room_connected;
     let soc = io('https://messaging-dot-ccproject2-274303.wl.r.appspot.com');
     var connected=true;
   const sendMessage = (message) => {
-    // var message = "Hi, I'm user " + username + ". This is a message from me.";
-    // if there is a non-empty message and a socket connection
+    
     if (message && connected) {
       // tell server to execute 'new message' and send along one parameter
       dataChannelClient.value = message;
@@ -40,7 +23,7 @@ var room_connected;
 
 
 const videoWidth = 600;
-const videoHeight = 500;
+const videoHeight = 400;
 const stats = new Stats();
 
 const defaultQuantBytes = 2;
@@ -91,185 +74,169 @@ const guiState = {
  * Sets up a frames per second panel on the top-left of the window
  */
 
-var sendrep = (data) => {
-    socket.emit('repdata', data);
-    dataChannelClient.innerHTML = data;
-  };
+var sendrep = data => {
+  socket.emit('repdata', data);
+  dataChannelClient.innerHTML = data;
+};
 
-function situpRepcount(keypoints)
-{
-  
+function situpRepcount(keypoints) {
   var r_hip = keypoints[12].position;
   var r_knee = keypoints[14].position;
-  var r_ankle = keypoints[16].position;
-
-  // console.log(r_shoulder);
+  var r_ankle = keypoints[16].position; // console.log(r_shoulder);
   // console.log(r_elbow);
   // console.log(r_wrist);
+
   var hip_knee_slope = (r_hip.y - r_knee.y) / (r_hip.x - r_knee.x);
   var knee_ankle_slope = (r_knee.y - r_ankle.y) / (r_knee.x - r_ankle.x);
-  var angle = Math.atan(( hip_knee_slope - knee_ankle_slope)/(1 + ( hip_knee_slope * knee_ankle_slope)));
-  angle = angle * (180/Math.PI);
+  var angle = Math.atan((hip_knee_slope - knee_ankle_slope) / (1 + hip_knee_slope * knee_ankle_slope));
+  angle = angle * (180 / Math.PI);
+  // console.log(angle);
 
-  console.log(angle);
-  if (situpRepcount.startrep == 0 && angle <= 10 && angle >= 0)
-  {
-    situpRepcount.startrep=1;
+  if (situpRepcount.startrep == 0 && angle <= 10 && angle >= 0) {
+    situpRepcount.startrep = 1;
     situpRepcount.preval = r_hip.y;
     console.log("rep started");
-  }
-   else if (situpRepcount.startrep ==1 && angle <= -35 && angle >= -45)
-  {
-      situpRepcount.maxreach=1;
-      situpRepcount.currval = r_hip.y;
-      console.log("max reached");
-  }
-  else if (situpRepcount.maxreach==1 && angle <= 10 && angle >= 0 && situpRepcount.currval < situpRepcount.preval)
-  {
+  } else if (situpRepcount.startrep == 1 && angle <= -35 && angle >= -45) {
+    situpRepcount.maxreach = 1;
+    situpRepcount.currval = r_hip.y;
+    console.log("max reached");
+  } else if (situpRepcount.maxreach == 1 && angle <= 10 && angle >= 0 && situpRepcount.currval < situpRepcount.preval) {
     console.log("rep end");
-    situpRepcount.repcount+=1
-    situpRepcount.maxreach=0
+    situpRepcount.repcount += 1;
+    situpRepcount.maxreach = 0;
   }
 
   return situpRepcount.repcount;
 }
 
-situpRepcount.repcount=0;
-situpRepcount.startrep =0;
-situpRepcount.maxreach =0;
+situpRepcount.repcount = 0;
+situpRepcount.startrep = 0;
+situpRepcount.maxreach = 0;
 situpRepcount.preval = 0;
 situpRepcount.currval = 0;
 
-function updateRepcount(keypoints)
-{
-  
+function updateRepcount(keypoints) {
   var r_shoulder = keypoints[6].position;
   var r_elbow = keypoints[8].position;
-  var r_wrist = keypoints[10].position;
-
-  // console.log(r_shoulder);
+  var r_wrist = keypoints[10].position; // console.log(r_shoulder);
   // console.log(r_elbow);
   // console.log(r_wrist);
+
   var elbow_wrist_slope = (r_elbow.y - r_wrist.y) / (r_elbow.x - r_wrist.x);
   var shoulder_elbow_slope = (r_shoulder.y - r_elbow.y) / (r_shoulder.x - r_elbow.x);
-  var angle = Math.atan((shoulder_elbow_slope -elbow_wrist_slope)/(1 + (shoulder_elbow_slope*elbow_wrist_slope)));
-  angle = angle * (180/Math.PI);
+  var angle = Math.atan((shoulder_elbow_slope - elbow_wrist_slope) / (1 + shoulder_elbow_slope * elbow_wrist_slope));
+  angle = angle * (180 / Math.PI); // console.log(angle);
 
-  // console.log(angle);
-  if (updateRepcount.startrep == 0 && angle <=0 && angle >=-10)
-  {
-    updateRepcount.startrep=1;
+  if (updateRepcount.startrep == 0 && angle <= 0 && angle >= -10) {
+    updateRepcount.startrep = 1;
     console.log("rep started");
-  }
-   else if (updateRepcount.startrep ==1 && angle <=-80 && angle >=-90)
-  {
-      updateRepcount.maxreach=1;
-      console.log("max reached");
-  }
-  else if (updateRepcount.maxreach==1 && angle <=0 && angle >= -10)
-  {
+  } else if (updateRepcount.startrep == 1 && angle <= -80 && angle >= -90) {
+    updateRepcount.maxreach = 1;
+    console.log("max reached");
+  } else if (updateRepcount.maxreach == 1 && angle <= 0 && angle >= -10) {
     console.log("rep end");
-    updateRepcount.repcount+=1
-    updateRepcount.maxreach=0
-    updateRepcount.endrep == 1
+    updateRepcount.repcount += 1;
+    updateRepcount.maxreach = 0;
+    updateRepcount.endrep == 1;
   }
 
   return updateRepcount.repcount;
 }
 
-updateRepcount.repcount=0;
-updateRepcount.startrep =0;
-updateRepcount.maxreach =0;
-updateRepcount.endrep =0;
-
-var startrepcount =0;
+updateRepcount.repcount = 0;
+updateRepcount.startrep = 0;
+updateRepcount.maxreach = 0;
+updateRepcount.endrep = 0;
+var startrepcount = 0;
+var mylastcount = 0;
+var theirlastcount = 0;
+var endmatch = 0;
 /**
  * Feeds an image to posenet to estimate poses - this is where the magic
  * happens. This function loops with a requestAnimationFrame method.
  */
+
 function detectPoseInRealTime(video, net) {
   const canvas = document.getElementById('output');
-  const ctx = canvas.getContext('2d');
-
-  // since images are being fed from a webcam, we want to feed in the
+  const ctx = canvas.getContext('2d'); // since images are being fed from a webcam, we want to feed in the
   // original image and then just flip the keypoints' x coordinates. If instead
   // we flip the image, then correcting left-right keypoint pairs requires a
   // permutation on all the keypoints.
-  const flipPoseHorizontal = true;
 
+  const flipPoseHorizontal = true;
   canvas.width = videoWidth;
   canvas.height = videoHeight;
 
   async function poseDetectionFrame() {
-
     // Begin monitoring code for frames per second
     stats.begin();
-
     let poses = [];
     let minPoseConfidence;
     let minPartConfidence;
+    const pose = await guiState.net.estimatePoses(video, {
+      flipHorizontal: flipPoseHorizontal,
+      decodingMethod: 'single-person'
+    });
+    poses = poses.concat(pose);
+    minPoseConfidence = +guiState.singlePoseDetection.minPoseConfidence;
+    minPartConfidence = +guiState.singlePoseDetection.minPartConfidence;
+    ctx.clearRect(0, 0, videoWidth, videoHeight); //console.log(guiState.output.showVideo);
 
-        const pose = await guiState.net.estimatePoses(video, {
-          flipHorizontal: flipPoseHorizontal,
-          decodingMethod: 'single-person'
-        });
-        poses = poses.concat(pose);
-        minPoseConfidence = +guiState.singlePoseDetection.minPoseConfidence;
-        minPartConfidence = +guiState.singlePoseDetection.minPartConfidence;
-
-    ctx.clearRect(0, 0, videoWidth, videoHeight);
-
-    //console.log(guiState.output.showVideo);
     if (guiState.output.showVideo) {
       ctx.save();
       ctx.scale(-1, 1);
       ctx.translate(-videoWidth, 0);
       ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
       ctx.restore();
-    }
-    // console.log()
+    } // console.log()
     //var repcount = updateRepcount(poses[0].keypoints);
-    var repcount = situpRepcount(poses[0].keypoints);
-    if(startrepcount === 1)
-    {
-      console.log(repcount);
-      sendrep(repcount);
-    }
-    // document.getElementById("repcount").innerHTML = repcount;
+
+
+   
+
+    if (startrepcount === 1) {
+      mylastcount = situpRepcount(poses[0].keypoints);
+      console.log(mylastcount);
+      sendrep(mylastcount);
+    } // document.getElementById("repcount").innerHTML = repcount;
     // For each pose (i.e. person) detected in an image, loop through the poses
     // and draw the resulting skeleton and keypoints if over certain confidence
     // scores
 
-    poses.forEach(({score, keypoints}) => {
+
+    poses.forEach(({
+      score,
+      keypoints
+    }) => {
       if (score >= minPoseConfidence) {
         if (guiState.output.showPoints) {
-         
-         // console.log(keypoints);
+          // console.log(keypoints);
           drawKeypoints(keypoints, minPartConfidence, ctx);
         }
+
         if (guiState.output.showSkeleton) {
           drawSkeleton(keypoints, minPartConfidence, ctx);
         }
+
         if (guiState.output.showBoundingBox) {
           drawBoundingBox(keypoints, ctx);
         }
       }
-    });
+    }); // End monitoring code for frames per second
 
-    // End monitoring code for frames per second
     stats.end();
-
     requestAnimationFrame(poseDetectionFrame);
   }
 
   poseDetectionFrame();
 }
-
 /**
  * Kicks off the demo by loading the posenet model, finding and loading
  * available camera devices, and setting off the detectPoseInRealTime function.
  */
- async function runmodel(video) {
+
+
+async function runmodel(video) {
   //toggleLoadingUI(true);
   const net = await posenet.load({
     architecture: guiState.input.architecture,
@@ -277,102 +244,78 @@ function detectPoseInRealTime(video, net) {
     inputResolution: guiState.input.inputResolution,
     multiplier: guiState.input.multiplier,
     quantBytes: guiState.input.quantBytes
-  });
-  //toggleLoadingUI(false);
+  }); //toggleLoadingUI(false);
 
-  
   guiState.net = net;
   console.log("running detectposeinrealtime");
   detectPoseInRealTime(video, net);
-}
-
-
-// export {runmodel}
+} // export {runmodel}
 
 
 const SIGNALING_SERVER_URL = 'https://signalling-dot-ccproject2-274303.wl.r.appspot.com';
 const TURN_SERVER_URL = '34.69.75.114:3478';
 const TURN_SERVER_USERNAME = 'user';
-const TURN_SERVER_CREDENTIAL = 'test';
-// Set up media stream constant and parameters.
-const PC_CONFIG = {
-  iceServers: [
-    {
-      urls: 'turn:' + TURN_SERVER_URL + '?transport=tcp',
-      username: TURN_SERVER_USERNAME,
-      credential: TURN_SERVER_CREDENTIAL
-    }
-  ]
-};
+const TURN_SERVER_CREDENTIAL = 'test'; // Set up media stream constant and parameters.
 
-// In this codelab, you will be streaming video only: "video: true".
+const PC_CONFIG = {
+  iceServers: [{
+    urls: 'turn:' + TURN_SERVER_URL + '?transport=tcp',
+    username: TURN_SERVER_USERNAME,
+    credential: TURN_SERVER_CREDENTIAL
+  }]
+}; // In this codelab, you will be streaming video only: "video: true".
 // Audio will not be streamed because it is set to "audio: false" by default.
+
 const mediaStreamConstraints = {
   'video': {
-      facingMode: 'user',
-      width: videoWidth,
-      height: videoHeight,
-    },
-};
+    facingMode: 'user',
+    width: videoWidth,
+    height: videoHeight
+  }
+}; // Set up to exchange only video.
 
-// Set up to exchange only video.
 const offerOptions = {
-  offerToReceiveVideo: 1,
-};
+  offerToReceiveVideo: 1
+}; // Define initial start time of the call (defined as connection between peers).
 
-// Define initial start time of the call (defined as connection between peers).
-let startTime = null;
+let startTime = null; // Define peer connections, streams and video elements.
 
-// Define peer connections, streams and video elements.
 const localVideo = document.getElementById('localVideo');
 localVideo.width = videoWidth;
-localVideo.height = videoHeight;
-// const remoteVideo = document.getElementById('remoteVideo');
+localVideo.height = videoHeight; // const remoteVideo = document.getElementById('remoteVideo');
 
-let localStream;
-// let remoteStream;
+let localStream; // let remoteStream;
 
 let localPeerConnection;
-let remotePeerConnection;
+let remotePeerConnection; // WebRTC methods
 
-// WebRTC methods
 let pc;
 let someStream;
-let remoteStreamElement = document.getElementById('remoteVideo');
-
-
-
-// Define MediaStreams callbacks.
-
+let remoteStreamElement = document.getElementById('remoteVideo'); // Define MediaStreams callbacks.
 // Sets the MediaStream as the video element src.
+
 function gotLocalMediaStream(mediaStream) {
   localVideo.srcObject = mediaStream;
   localStream = mediaStream;
   trace('Received local stream.');
-  callButton.disabled = false;  // Enable call button.
-
+  callButton.disabled = false; // Enable call button.
   // runmodel(localVideo);
-}
+} // Handles error by logging a message to the console.
 
-// Handles error by logging a message to the console.
+
 function handleLocalMediaStreamError(error) {
   trace(`navigator.getUserMedia error: ${error.toString()}.`);
-}
-
-
-// Add behavior for video streams.
-
+} // Add behavior for video streams.
 // Logs a message with the id and size of a video element.
+
+
 function logVideoLoaded(event) {
   const video = event.target;
-  trace(`${video.id} videoWidth: ${video.videoWidth}px, ` +
-    `videoHeight: ${video.videoHeight}px.`);
-
-  // runmodel(video);
-}
-
-// Logs a message with the id and size of a video element.
+  trace(`${video.id} videoWidth: ${video.videoWidth}px, ` + `videoHeight: ${video.videoHeight}px.`); // runmodel(video);
+} // Logs a message with the id and size of a video element.
 // This event is fired when video begins streaming.
+
+
 function logResizedVideo(event) {
   logVideoLoaded(event);
 
@@ -383,14 +326,11 @@ function logResizedVideo(event) {
   }
 }
 
-localVideo.addEventListener('loadedmetadata', logVideoLoaded);
-// remoteVideo.addEventListener('loadedmetadata', logVideoLoaded);
+localVideo.addEventListener('loadedmetadata', logVideoLoaded); // remoteVideo.addEventListener('loadedmetadata', logVideoLoaded);
 // remoteVideo.addEventListener('onresize', logResizedVideo);
-
-
 // Define RTC peer connection behavior.
-
 // Connects with new peer candidate.
+
 function handleConnection(event) {
   const peerConnection = event.target;
   const iceCandidate = event.candidate;
@@ -398,152 +338,136 @@ function handleConnection(event) {
   if (iceCandidate) {
     const newIceCandidate = new RTCIceCandidate(iceCandidate);
     const otherPeer = getOtherPeer(peerConnection);
-
-    otherPeer.addIceCandidate(newIceCandidate)
-      .then(() => {
-        handleConnectionSuccess(peerConnection);
-      }).catch((error) => {
-        handleConnectionFailure(peerConnection, error);
-      });
-
-    trace(`${getPeerName(peerConnection)} ICE candidate:\n` +
-      `${event.candidate.candidate}.`);
+    otherPeer.addIceCandidate(newIceCandidate).then(() => {
+      handleConnectionSuccess(peerConnection);
+    }).catch(error => {
+      handleConnectionFailure(peerConnection, error);
+    });
+    trace(`${getPeerName(peerConnection)} ICE candidate:\n` + `${event.candidate.candidate}.`);
   }
-}
+} // Logs that the connection succeeded.
 
-// Logs that the connection succeeded.
+
 function handleConnectionSuccess(peerConnection) {
   trace(`${getPeerName(peerConnection)} addIceCandidate success.`);
-};
-
-// Logs that the connection failed.
-function handleConnectionFailure(peerConnection, error) {
-  trace(`${getPeerName(peerConnection)} failed to add ICE Candidate:\n` +
-    `${error.toString()}.`);
 }
 
-// Logs changes to the connection state.
+; // Logs that the connection failed.
+
+function handleConnectionFailure(peerConnection, error) {
+  trace(`${getPeerName(peerConnection)} failed to add ICE Candidate:\n` + `${error.toString()}.`);
+} // Logs changes to the connection state.
+
+
 function handleConnectionChange(event) {
   const peerConnection = event.target;
   console.log('ICE state change event: ', event);
-  trace(`${getPeerName(peerConnection)} ICE state: ` +
-    `${peerConnection.iceConnectionState}.`);
-}
+  trace(`${getPeerName(peerConnection)} ICE state: ` + `${peerConnection.iceConnectionState}.`);
+} // Logs error when setting session description fails.
 
-// Logs error when setting session description fails.
+
 function setSessionDescriptionError(error) {
   trace(`Failed to create session description: ${error.toString()}.`);
-}
+} // Logs success when setting session description.
 
-// Logs success when setting session description.
+
 function setDescriptionSuccess(peerConnection, functionName) {
   const peerName = getPeerName(peerConnection);
   trace(`${peerName} ${functionName} complete.`);
-}
+} // Logs success when localDescription is set.
 
-// Logs success when localDescription is set.
+
 function setLocalDescriptionSuccess(peerConnection) {
   setDescriptionSuccess(peerConnection, 'setLocalDescription');
-}
+} // Logs success when remoteDescription is set.
 
-// Logs success when remoteDescription is set.
+
 function setRemoteDescriptionSuccess(peerConnection) {
   setDescriptionSuccess(peerConnection, 'setRemoteDescription');
-}
+} // Logs offer creation and sets peer connection session descriptions.
 
-// Logs offer creation and sets peer connection session descriptions.
+
 function createdOffer(description) {
   trace(`Offer from localPeerConnection:\n${description.sdp}`);
-
   trace('localPeerConnection setLocalDescription start.');
-  localPeerConnection.setLocalDescription(description)
-    .then(() => {
-      setLocalDescriptionSuccess(localPeerConnection);
-    }).catch(setSessionDescriptionError);
-}
+  localPeerConnection.setLocalDescription(description).then(() => {
+    setLocalDescriptionSuccess(localPeerConnection);
+  }).catch(setSessionDescriptionError);
+} // Logs answer to offer creation and sets peer connection session descriptions.
 
-// Logs answer to offer creation and sets peer connection session descriptions.
+
 function createdAnswer(description) {
-
   trace('localPeerConnection setRemoteDescription start.');
-  localPeerConnection.setRemoteDescription(description)
-    .then(() => {
-      setRemoteDescriptionSuccess(localPeerConnection);
-    }).catch(setSessionDescriptionError);
-}
-
-
-// Define and add behavior to buttons.
-
+  localPeerConnection.setRemoteDescription(description).then(() => {
+    setRemoteDescriptionSuccess(localPeerConnection);
+  }).catch(setSessionDescriptionError);
+} // Define and add behavior to buttons.
 // Define action buttons.
+
+
 const startButton = document.getElementById('startButton');
 const callButton = document.getElementById('callButton');
 const hangupButton = document.getElementById('hangupButton');
-const countdowntext = document.getElementById('countdown');
-// Set up initial action buttons status: disable call and hangup.
+const countdowntext = document.getElementById('countdown'); // Set up initial action buttons status: disable call and hangup.
+
 callButton.disabled = true;
-hangupButton.disabled = true;
+hangupButton.disabled = true; // Handles start button action: creates local MediaStream.
 
-
-// Handles start button action: creates local MediaStream.
 function startAction() {
   startButton.disabled = true;
-  navigator.mediaDevices.getUserMedia(mediaStreamConstraints)
-    .then(gotLocalMediaStream).catch(handleLocalMediaStreamError);
+  navigator.mediaDevices.getUserMedia(mediaStreamConstraints).then(gotLocalMediaStream).catch(handleLocalMediaStreamError);
   trace('Requesting local stream.');
-}
+} // Handles call button action: creates peer connection.
 
-// Handles call button action: creates peer connection.
+
 var socket;
-function callAction() {
 
+function callAction() {
   callButton.disabled = true;
   hangupButton.disabled = false;
-
   trace('Starting call.');
-  startTime = window.performance.now();
+  startTime = window.performance.now(); // Get local media stream tracks.
 
-  // Get local media stream tracks.
   const videoTracks = localStream.getVideoTracks();
   const audioTracks = localStream.getAudioTracks();
+
   if (videoTracks.length > 0) {
     trace(`Using video device: ${videoTracks[0].label}.`);
   }
+
   if (audioTracks.length > 0) {
     trace(`Using audio device: ${audioTracks[0].label}.`);
   }
 
-  socket = io(SIGNALING_SERVER_URL, { autoConnect: false });
-  // let socket = io(SIGNALING_SERVER_URL, { autoConnect: false });
+  socket = io(SIGNALING_SERVER_URL, {
+    autoConnect: false
+  }); // let socket = io(SIGNALING_SERVER_URL, { autoConnect: false });
 
-  socket.on('data', (data) => {
+  socket.on('data', data => {
     console.log('Data received: ', data);
     handleSignalingData(data);
   });
-
-  socket.on('room', (data) => {
+  socket.on('room', data => {
     console.log('ROOM CONNECTED: ', data);
-    room_connected = data;
-    //tell messaging server to connect me to this room_connected
+    room_connected = data; //tell messaging server to connect me to this room_connected
+
     soc.emit('room', room_connected);
   });
-
   socket.on('ready', () => {
-    console.log('Ready');
-
-    // var rooms = Object.keys(socket.rooms); //Object.keys(socket.rooms).filter(item => item!=socket.id);
+    console.log('Ready'); // var rooms = Object.keys(socket.rooms); //Object.keys(socket.rooms).filter(item => item!=socket.id);
     // console.log(rooms);
     // Connection with signaling server is ready, and so is local stream
+
     createPeerConnection();
     sendOffer();
   });
-
-  socket.on('repdata', (data) => {
-    console.log("received rep data");
+  socket.on('repdata', data => {
+    // console.log("received rep data");
     dataChannelReceive.innerHTML = data;
-  })
+    theirlastcount = data;
+  });
 
-  let sendData = (data) => {
+  let sendData = data => {
     socket.emit('data', data);
   };
 
@@ -556,37 +480,61 @@ function callAction() {
     //   runmodel(localVideo);
     // }
 
-    // var timeleft = 10;
-    // var downloadTimer = setInterval(function(){
+    if(endmatch === 0)
+    {
+      startrepcount = 1;
+    }
+    var result="";
+    var timeleft = 30;
+    var downloadTimer = setInterval(function(){
 
-    //   if(timeleft <= 0){
-    //     clearInterval(downloadTimer);
-    //   }
-    //   //document.getElementById("progressBar").value = 10 - timeleft;
-    //   console.log(timeleft);
-    //   timeleft -= 1;
-    //   }, 1000);
+      if(timeleft <= 0){
+        startrepcount = 0;
+        endmatch =1;
+        if(mylastcount > theirlastcount)
+        {
+          console.log("YOU WIN!!!!");
+          result = "YOU WIN!!!";
+        }
+        else if (mylastcount < theirlastcount)
+        {
+          console.log("YOU LOSE");
+          result = "YOU LOSE :(";
+        }
+        else
+        {
+          console.log("TIE");
+          result = "TIE";
+        }
+          document.getElementById("myresult").innerHTML = result;
+
+        clearInterval(downloadTimer);
+      }
+      //document.getElementById("progressBar").value = 10 - timeleft;
+      console.log(timeleft);
+      timeleft -= 1;
+      }, 1000);
     
     //   console.log("after timer" + timeleft);
     //   if (timeleft ===0){
-      startrepcount = 1;
+      // startrepcount = 1;
     //}
     
-  })  
-
+  });
 
   let getLocalStream = () => {
-    navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-      .then((stream) => {
-        console.log('Stream found');
-        someStream = stream;
-        // Connect after making sure that local stream is availble
-        socket.connect();
-      })
-      .catch(error => {
-        console.error('Stream not found: ', error);
-      });
-  }
+    navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: true
+    }).then(stream => {
+      console.log('Stream found');
+      someStream = stream; // Connect after making sure that local stream is availble
+
+      socket.connect();
+    }).catch(error => {
+      console.error('Stream not found: ', error);
+    });
+  };
 
   let createPeerConnection = () => {
     try {
@@ -602,27 +550,25 @@ function callAction() {
 
   let sendOffer = () => {
     console.log('Send offer');
-    pc.createOffer().then(
-      setAndSendLocalDescription,
-      (error) => { console.error('Send offer failed: ', error); }
-    );
+    pc.createOffer().then(setAndSendLocalDescription, error => {
+      console.error('Send offer failed: ', error);
+    });
   };
 
   let sendAnswer = () => {
     console.log('Send answer');
-    pc.createAnswer().then(
-      setAndSendLocalDescription,
-      (error) => { console.error('Send answer failed: ', error); }
-    );
+    pc.createAnswer().then(setAndSendLocalDescription, error => {
+      console.error('Send answer failed: ', error);
+    });
   };
 
-  let setAndSendLocalDescription = (sessionDescription) => {
+  let setAndSendLocalDescription = sessionDescription => {
     pc.setLocalDescription(sessionDescription);
     console.log('Local description set');
     sendData(sessionDescription);
   };
 
-  let onIceCandidate = (event) => {
+  let onIceCandidate = event => {
     if (event.candidate) {
       console.log('ICE candidate');
       sendData({
@@ -632,125 +578,106 @@ function callAction() {
     }
   };
 
-  var startmatch = () =>
-  {
+  var startmatch = () => {
     socket.emit('startmatch');
-  }
-  let onAddStream = (event) => {
-    console.log('Add stream');
-    remoteStreamElement.srcObject = event.stream;
+  };
 
-    //start posenet
-    
+  let onAddStream = event => {
+    console.log('Add stream');
+    remoteStreamElement.srcObject = event.stream; //start posenet
+
     runmodel(localVideo);
     startmatch();
   };
 
-  let handleSignalingData = (data) => {
+  let handleSignalingData = data => {
     switch (data.type) {
       case 'offer':
         createPeerConnection();
         pc.setRemoteDescription(new RTCSessionDescription(data));
         sendAnswer();
         break;
+
       case 'answer':
         pc.setRemoteDescription(new RTCSessionDescription(data));
         break;
+
       case 'candidate':
         pc.addIceCandidate(new RTCIceCandidate(data.candidate));
         break;
     }
   };
 
-  getLocalStream();
+  getLocalStream(); // Create peer connections and add behavior.
 
-  // Create peer connections and add behavior.
   localPeerConnection = new RTCPeerConnection(null);
+} // Handles hangup action: ends up call, closes connections and resets peers.
 
-}
 
-// Handles hangup action: ends up call, closes connections and resets peers.
 function hangupAction() {
-
+  pc.close();
+  pc = null;
   someStream.getTracks().forEach(t => t.stop());
   hangupButton.disabled = true;
-  callButton.disabled = false;
+  callButton.disabled = false; // location.reload();
   // location.reload();
   trace('Ending call.');
-}
+} // Add click event handlers for buttons.
 
-// Add click event handlers for buttons.
+
 startButton.addEventListener('click', startAction);
 callButton.addEventListener('click', callAction);
-hangupButton.addEventListener('click', hangupAction);
-
-
-// Define helper functions.
-
+hangupButton.addEventListener('click', hangupAction); // Define helper functions.
 // Gets the "other" peer connection.
+
 function getOtherPeer(peerConnection) {
-  return (peerConnection === localPeerConnection) ?
-    remotePeerConnection : localPeerConnection;
-}
+  return peerConnection === localPeerConnection ? remotePeerConnection : localPeerConnection;
+} // Gets the name of a certain peer connection.
 
-// Gets the name of a certain peer connection.
+
 function getPeerName(peerConnection) {
-  return (peerConnection === localPeerConnection) ?
-    'localPeerConnection' : 'remotePeerConnection';
-}
+  return peerConnection === localPeerConnection ? 'localPeerConnection' : 'remotePeerConnection';
+} // Logs an action (text) and the time when it happened on the console.
 
-// Logs an action (text) and the time when it happened on the console.
+
 function trace(text) {
   text = text.trim();
   const now = (window.performance.now() / 1000).toFixed(3);
-
   console.log(now, text);
 }
 
-
-
 $(function () {
   var username;
-  var connected = false;
-  
-  // let soc = io();
+  var connected = false; // let soc = io();
   // Sets the client's username
   // const setUsername = () => {
   //   var array = new Uint32Array(1);
   //   window.crypto.getRandomValues(array);
   //   username = array;
-
   //   // If the username is valid
   //   if (username) {
-
   //     // Tell the server your username
   //     soc.emit('add user', username);
   //   }
   // }
-
   //const sendButton1 = document.getElementById('sendButton1');
   //var dataChannelSend = document.getElementById('textarea#dataChannelSend');
+
   var dataChannelClient = document.getElementById('dataChannelClient');
-  var dataChannelReceive = document.getElementById('dataChannelReceive');
-  //var dataChannelReceive = document.querySelector('textarea#dataChannelReceive');
+  var dataChannelReceive = document.getElementById('dataChannelReceive'); //var dataChannelReceive = document.querySelector('textarea#dataChannelReceive');
   // var counterElement = document.querySelector('p#counter');
-
   //sendButton1.addEventListener('click', onSendButton1);
-
   // counterElement.addEventListener("change", function() {
   //   var message = counterElement.value;
   //   sendMessage(message);
   // });
-
   // function sleep(ms) {
   //   return new Promise(resolve => setTimeout(resolve, ms));
   // }
-
   // async function demo() {
   //   // console.log('Taking a break...');
   //   // await sleep(2000);
   //   // console.log('Two seconds later, showing sleep in a loop...');
-
   //   // Sleep in loop
   //   for (let i = 0; i < 10; i++) {
   //     // if (i === 3)
@@ -759,18 +686,14 @@ $(function () {
   //     // console.log(i);
   //   }
   // }
-
   // demo();
-
   // Handles start button action: creates local MediaStream.
   // function onSendButton1() {
   //   trace('clicked msg start button');
   //   var message = dataChannelSend.value;
   //   sendMessage(message);
   // }
-
   // Sends a chat message
-
   // if (username) {
   //   sendMessage();
   //   soc.emit('stop typing');
@@ -780,70 +703,65 @@ $(function () {
   //   sendMessage();
   // }
   // Log a message
+
   const log = (message, options) => {
     console.log(message);
-  }
+  };
 
-  const addParticipantsMessage = (data) => {
+  const addParticipantsMessage = data => {
     var message = '';
+
     if (data.numUsers === 1) {
       message += "there's 1 participant";
     } else {
       message += "there are " + data.numUsers + " participants";
     }
+
     log(message);
-  }
-
-  // Socket events
-
+  }; // Socket events
   // Whenever the server emits 'login', log the login message
-  soc.on('login', (data) => {
-    connected = true;
-    // Display the welcome message
+
+
+  soc.on('login', data => {
+    connected = true; // Display the welcome message
+
     var message = "Welcome to ChallengeMe";
     log(message, {
       prepend: true
     });
     addParticipantsMessage(data);
   });
-
-  soc.on('new message', (data) => {
+  soc.on('new message', data => {
     log(data);
     dataChannelReceive.value = data.message;
-  })
+  }); // // Whenever the server emits 'user joined', log it in the chat body
 
-  // // Whenever the server emits 'user joined', log it in the chat body
-  soc.on('user joined', (data) => {
+  soc.on('user joined', data => {
     log(data.username + ' joined');
-  });
+  }); // // Whenever the server emits 'user left', log it in the chat body
 
-  // // Whenever the server emits 'user left', log it in the chat body
-  soc.on('user left', (data) => {
+  soc.on('user left', data => {
     log(data.username + ' left');
     addParticipantsMessage(data);
-  });
+  }); // // Whenever the server emits 'typing', show the typing message
 
-  // // Whenever the server emits 'typing', show the typing message
-  soc.on('typing', (data) => {
+  soc.on('typing', data => {
+    log(data);
+  }); // // Whenever the server emits 'stop typing', kill the typing message
+
+  soc.on('stop typing', data => {
     log(data);
   });
-
-  // // Whenever the server emits 'stop typing', kill the typing message
-  soc.on('stop typing', (data) => {
-    log(data);
-  });
-
   soc.on('disconnect', () => {
     log('you have been disconnected');
   });
-
   soc.on('reconnect', () => {
     log('you have been reconnected');
+
     if (username) {
       soc.emit('add user', username);
     }
   });
-
   soc.on('reconnect_error', () => {
     log('attempt to reconnect has failed');
   });

@@ -1,9 +1,31 @@
 import datetime
-
+import os
 from flask import Flask, render_template
+import sqlalchemy
+from werkzeug.security import check_password_hash
 
 app = Flask(__name__, static_url_path="/static/dist", static_folder="./static/dist", template_folder="./static/dist")
 
+db_user = "root"
+db_pass = "Challengeme1234"
+db_name = "userdb"
+cloud_sql_connection_name = "challengemedb"
+
+# The SQLAlchemy engine will help manage interactions, including automatically
+# managing a pool of connections to your database
+db = sqlalchemy.create_engine(
+    # Equivalent URL:
+    # mysql+pymysql://<db_user>:<db_pass>@/<db_name>?unix_socket=/cloudsql/<cloud_sql_instance_name>
+    sqlalchemy.engine.url.URL(
+        drivername="mysql+pymysql",
+        username=db_user,
+        password=db_pass,
+        database=db_name,
+        query={"unix_socket": "/cloudsql/{}".format(cloud_sql_connection_name)},
+    ),
+    # ... Specify additional properties here.
+    # ...
+)
 
 @app.route('/')
 def root():
@@ -14,8 +36,40 @@ def root():
     #                datetime.datetime(2018, 1, 3, 11, 0, 0),
     #                ]
 
+    return render_template('login.html', title="ChallangeMe")
+
+@app.route('/index')
+def index():
     return render_template('index.html', title="ChallangeMe")
 
+@app.route("/login", methods=("GET", "POST"))
+def login(request):
+    """Log in a registered user by adding the user id to the session."""
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+        with db.connect() as conn:
+
+            # conn = get_db()
+            error = None
+            user = conn.execute(
+                "SELECT * FROM user WHERE username = ?", (username,)
+            ).fetchone()
+
+        if user is None:
+            error = "Incorrect username."
+        elif not check_password_hash(user["password"], password):
+            error = "Incorrect password."
+
+        if error is None:
+            # store the user id in a new session and return to the index
+            session.clear()
+            session["user_id"] = user["id"]
+            return redirect(url_for("index"))
+
+        flash(error)
+
+    return render_template("login.html")
 
 if __name__ == '__main__':
     # This is used when running locally only. When deploying to Google App

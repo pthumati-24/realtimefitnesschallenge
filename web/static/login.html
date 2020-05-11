@@ -22,15 +22,24 @@
   <div class="container">
     <div class="row">
       <div class="col s5">
-        <form method="post">
+        <div >
           <label for="username" style="color: white; font-size: 18px;">Username</label>
           <input name="username" id="username" required>
           <label for="password" style="color: white; font-size: 18px;">Password</label>
           <input type="password" name="password" id="password" required>
-          <button class="btn waves-effect waves-light" onclick="window.location.href='index.html'; return false;" ><i class="fas fa-paper-plane" aria-hidden="true"></i>&nbsp;Login</button>
-        </form>
+          <button class="btn waves-effect waves-light" id="submit"><i class="fas fa-paper-plane" aria-hidden="true"></i>&nbsp;Login</button>
+        </div>
       </div>
     </div>
   </div>
-
+<script>
+  $("#submit").click(function() {
+    $.post("/login", {
+        "username": $("#username").val(),
+        "password": $("#password").val()
+      }).done(function(){
+        window.location.href = "/index.html";
+      });
+  });
+</script>
 </body>

@@ -28,54 +28,44 @@
       </ul>
     </div>
   </nav>
-  <div class="container" >
+  <div class="container">
     <center><h3 style="color: white">Challenge Room</h3></center>
 
     <div class="row" id="main">
       <div class="col s6">
-          <video id="localVideo" autoplay playsinline style="display: none;"></video>
+          <video id="localVideo" autoplay="" playsinline="" style="display: none;"></video>
           <canvas id="output"></canvas>
       </div>
       <div class="col s6">
           
-          <video id="remoteVideo" autoplay playsinline></video>
+          <video id="remoteVideo" autoplay="" playsinline="" style="object-fit: fill" width="600" height="400"></video>
       </div>
     </div>
     <!-- Reps completed -->
       <!-- <p id="repcount"></p> -->
     <!-- <video id="localVideo" autoplay playsinline></video> -->
     <div class="row">
-      <div class="col s6" style="color: white"><center ><div id="dataChannelClient" class="odometer">0</div></center></div>
+      <div class="col s6" style="color: white"><center><div id="dataChannelClient" class="odometer">0</div></center></div>
       <div class="col s6" style="color: white"><center><div id="dataChannelReceive" class="odometer">0</div></center></div>
     </div>
-
+    <div class="row">
+      <div class="col s4"></div>
+      <div class="col s2"><p id="myresult" style="font-size: 35px; color: white;"></p></div>
+      <div class="col s4"></div>
+    </div>
     <div class="row">
       <div class="col s2"><a style="width: 190px;" id="startButton" title="Connect to Room" alt="Login into Chat Room" class="waves-effect waves-light btn blue"><i class="fas fa-sign-in-alt"></i>&nbsp;Connect to Room</a></div>
       <div class="col s2"><a style="width: 190px;" id="callButton" class="waves-effect waves-light btn green"><i class="fas fa-phone"></i>&nbsp;Start Match</a></div>
       <div class="col s2"><a style="width: 190px;" id="hangupButton" class="waves-effect waves-light btn red"><i class="fas fa-phone-slash"></i>&nbsp;End Match</a></div>
-      <!-- <button ></button>
-      <button ></button>
-      <button ></button> -->
     </div>
-    <a href="login.html">Login page</a>
-    <!-- <textarea id="dataChannelSend"
-      placeholder="Press Start, enter some text, then press Send."></textarea>
-    <textarea id="dataChannelClient" disabled
-      placeholder="Press Start, enter some text, then press Send."></textarea>
-    <textarea id="dataChannelReceive" disabled></textarea> -->
 
-    <!-- <div id="buttons"> -->
-      <!-- <button id="startButton1">Start</button> -->
-      <!-- <button id="sendButton1">Send</button> -->
-      <!-- <button id="closeButton1">Stop</button> -->
-    <!-- </div> -->
   </div>
 
   
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
   <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-  <script src="socket.io.js"></script>
-  <script src="main.js"></script>
+  <script src="/socket.io.js"></script>
+  <script src="/main.js"></script>
   <!-- <script src="camera_webrtc.js"></script> -->
 </body>
 </html>
